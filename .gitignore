@@ -18,6 +18,9 @@ gen/
 *.classpath
 *.project
 
+.jshintrc
+.settings
+
 # Gradle files
 .gradle/
 build/
