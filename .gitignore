@@ -11,6 +11,12 @@
 # Generated files
 bin/
 gen/
+*.o
+*.d
+*.a
+*.prefs
+*.classpath
+*.project
 
 # Gradle files
 .gradle/
