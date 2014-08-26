@@ -1,5 +1,6 @@
-clo
-===
+## RTC Broadcasting System, Graduation project, Gachon university
 
-# RTC Broadcasting System, Graduation project, Gachon university
-- socket.io version = 0.9
+- node = 0.8
+- socket.io = 0.9
+- mariasql = 0.1
+- 
