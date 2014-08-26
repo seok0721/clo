@@ -3,4 +3,3 @@
 - node = 0.8
 - socket.io = 0.9
 - mariasql = 0.1
-- 
