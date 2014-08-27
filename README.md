@@ -33,9 +33,9 @@
 
 ## System Architecture
 
-                             Redis
-                               |
+                   +-------> Redis <-----------+
+                   |           |               |
     Android <-> Node.js <-> MariaDB <-> Apache Http Server
-                               |
-                            Chrome
+                   |           |               |
+                   +------> Chrome <-----------+
 
