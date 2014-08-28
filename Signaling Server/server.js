@@ -1,85 +1,113 @@
-var static = require('node-static');
-var http = require('http');
-var file = new(static.Server)();
-var app = http.createServer(function(req, res) {
-  file.serve(req, res);
-}).listen(20130);
+var io = require('socket.io').listen(10080);
+var inspect = require('util').inspect;
+var maria = require('./maria.js');
+var redis = require('./redis.js');
+var event = require('./event.js');
+var status = require('./status.js');
+var rooms = [];
 
-var io = require('socket.io').listen(app);
+function log(message) {
+  console.log('Signaling Server: ' + message);
+}
 
 io.sockets.on('connection', function(socket) {
-  function log() {
-    var array = ['>>> Message from server: '];
-    for(var i = 0; i < arguments.length; i++) {
-      array.push(arguments[i]);
-    }
-    socket.emit('log', array);
-  }
+  socket.on(event.B_LOGIN, function(data) {
+    var email = data.email;
+    var passwd = data.passwd;
 
-  socket.on('message', function(message) {
-    // log('Got message:', message);
-    console.log('message: ' + message);
-    // socket.broadcast.emit('message', message);
-    socket.emit('message', message);
+    log(inspect(data));
+
+    redis.exist_session(email, passwd, function(reply, message) {
+      log(reply);
+      log(message);
+
+      switch(reply) {
+      case status.OK:
+        socket.emit(event.B_LOGIN, {
+          'reply': reply,
+          'session': message
+        });
+        break;
+      case status.SESSION_NOT_FOUND:
+        maria.read_broadcaster(email, passwd, function(err, data, meta) {
+          if(err) {
+            log(err);
+
+            // TODO socket.emit()
+          }
+        });
+        break;
+      default:
+        log('login failure.');
+
+        socket.emit(event.B_LOGIN, {
+          'reply': reply,
+          'message': message
+        });
+        break;
+      }
+    });
   });
 
-  socket.on('create or join', function(room) {
-    // var numClients = io.sockets.clients(room).length;
-    console.log(io.sockets.in(room));
-    console.log(socket.join(room));
-    console.log('================================');
-    for(var i in io.sockets.sockets) {
- //     console.log(io.sockets.sockets[i]);
-    }
-  console.log(io.sockets.adapter);
+  socket.on(event.B_LOGOUT, function(data) {
+    
+  });
 
- //   console.log(io.sockets.sockets[0].rooms);
-    console.log('--------------------');
-    console.log(socket.id);
-  //  console.log(socket);
-
-//    log('Room ' + room + ' has ' + numClients + ' client(s)');
-//    log('Request to create or join room ' + room);
 /*
-    if(!io.sockets.rooms) {
-      log('Room ' + room + ' has 0 client(s)');
-      log('Request to create room ' + room);
+  socket.on('LOGIN', function(data) {
+    log(data);
 
-      io.sockets.in(room).emit('join', room);
-
-      socket.join(room);
-      socket.emit('created', room);
-    } else {
-      io.socket.rooms.contains(room, function(ret) {
-        io.sockets.in(room).emit('join', room);
-        if(ret == true) {
-          socket.join(room);
-          socket.emit('joined', room);
-        } else {
-    log('Room ' + room + ' has ' + numClients + ' client(s)');
-    log('Request to create or join room ' + room);
-
-          socket.emit('full', room);
-        }
-      });
-    }
-*/
-    socket.emit('emit(): client ' + socket.id + ' joined room ' + room);
-    socket.broadcast.emit('broadcast(): client ' + socket.id + ' joined room ' + room);
+    maria.read_broadcaster(data.email, function(err, data) {
+      if(err) {
+      } else {
+      }
+    });
   });
+
+  socket.on('CREATE', function(data) {
+
+    redis.session_create('aaaa', function(code, message) {
+      console.log(code + ': ' + message);
+    });
+
+    var room = data.room;
+
+    if(rooms.indexOf(room) > -1) {
+      console.log(TAG + ': Already room exists.');
+
+      socket.emit('CREATE', {code: 500, message: "Already room exists."});
+      return;
+    }
+
+    maria.read_broadcaster(data.email, function(err, data, meta) {
+      if(err) {
+        console.log(TAG + ': ' + err);
+
+        socket.emit('CREATE', {code: 500});
+      } else if(data) {
+        console.log(TAG + ': ' + rooms);
+        console.log(TAG + ': ' + room);
+
+        rooms.push(room);
+
+        socket.emit('CREATE', {code: 200});
+      } else {
+        console.log(TAG + ': ' + meta);
+      }
+    });
+  });
+
+  socket.on('DESTROY', function(data) {
+    console.log(data);
+
+    socket.emit('DESTROY', {code: 200});
+  });
+
+  socket.on('disconnect', function(data) {
+    console.log(data);
+
+    io.sockets.emit('user disconnected');
+  });
+*/
 });
-
-Array.prototype.contains = function(k, callback) {
-  var self = this;
-  return (function check(i) {
-    if(i >= self.length) {
-      return callback(false);
-    }
-    if(self[i] === k) {
-      return callback(true);
-    }
-
-    return process.nextTick(check.bind(null, i + 1));
-  }(0));
-}
 

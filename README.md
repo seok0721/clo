@@ -3,6 +3,7 @@
 - node = 0.8
 - socket.io = 0.9
 - mariasql = 0.1
+- randomstring = 1.0
 
 ## Event
 

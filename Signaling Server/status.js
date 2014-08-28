@@ -17,7 +17,9 @@
  */
 module.exports.OK = 200;
 module.exports.LOGIN = 201;
-module.expores.REDIS_ERROR = 430;
+module.exports.LOGOUT = 202;
+module.exports.REDIS_ERROR = 430;
 module.exports.SESSION_ALREADY_EXIST = 431;
 module.exports.SESSION_NOT_FOUND = 432;
 module.exports.GET_SESSION_ERROR = 433;
+

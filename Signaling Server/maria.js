@@ -17,10 +17,11 @@ function log(message) {
   console.log('Maria: ' + message);
 }
 
-function read_broadcaster(email, callback) {
+function read_broadcaster(email, passwd, callback) {
   client
-  .query('SELECT * FROM TBL_BROADCASTER WHERE EMAIL = :email', {
-    'email': email
+  .query('SELECT * FROM TBL_BROADCASTER WHERE EMAIL = :email AND PASSWD = :passwd', {
+    'email': email,
+    'passwd': passwd
   })
   .on('result', function(result) {
     result
@@ -35,7 +36,7 @@ function read_broadcaster(email, callback) {
     });
   })
   .on('end', function() {
-    log(Query end.');
+    log('Query end.');
 
     callback(null, null, 'End of query.');
   });
