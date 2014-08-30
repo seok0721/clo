@@ -10,7 +10,7 @@ import org.json.JSONObject;
 public class AppRTCEventHandler implements IOCallback {
 
 	private SocketIO socket;
-	private boolean roomCreated = false;
+	private String room;
 
 	@Override
 	public void onConnect() {
@@ -24,22 +24,24 @@ public class AppRTCEventHandler implements IOCallback {
 
 	@Override
 	public void on(String event, IOAcknowledge ack, Object... args) {
-		System.out.println("event: " + event);
-		System.out.println("args:" + args[0]);
-		ack.ack(args[0]);
-		/*
-		try {
-			JSONObject json = (JSONObject)args[0];
+		JSONObject data = (JSONObject)args[0];
 
-			if(AppRTCEvent.CREATE.equals(event)) {
-				createRoom(json);
-			} else if(AppRTCEvent.DESTROY.equals(event)) {
-				destroyRoom(json);
+		if(AppRTCEvent.B_CREATE_ROOM.equals(event)) {
+			try {
+				int ret = data.getInt("ret");
+				String room = data.getString("room");
+
+				switch(ret) {
+				case AppRTCStatus.OK:
+					this.room = room;
+					break;
+				case AppRTCStatus.ROOM_ALREADY_EXIST:
+					break;
+				}
+			} catch(Exception e) {
+				System.err.println(e.getMessage());
 			}
-		} catch(Exception e) {
-			System.err.println(e.getMessage());
 		}
-		*/
 	}
 
 	@Override
@@ -64,41 +66,8 @@ public class AppRTCEventHandler implements IOCallback {
 	public void setSocket(SocketIO socket) {
 		this.socket = socket;
 	}
-	
-	public boolean hasRoom() {
-		return roomCreated;
+
+	public void clearRoom() {
+		room = null;
 	}
-
-	/*
-	private void createRoom(final JSONObject json) {
-		try {
-			int code = json.getInt("code");
-
-			if(AppRTCResponse.SUCCESS == code) {
-				System.out.println("create success");
-				roomCreated = true;
-			} else {
-				System.err.println("create failure");
-				roomCreated = false;
-			}
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-		}
-	}
-
-	private void destroyRoom(final JSONObject json) {
-		try {
-			int code = json.getInt("code");
-
-			if(AppRTCResponse.SUCCESS == code) {
-				System.out.println("destroy success");
-				roomCreated = false;
-			} else {
-				System.err.println("destroy failure");
-			}
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-		}
-	}
-	*/
 }

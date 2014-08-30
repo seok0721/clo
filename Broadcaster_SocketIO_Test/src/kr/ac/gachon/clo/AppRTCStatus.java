@@ -2,13 +2,7 @@ package kr.ac.gachon.clo;
 
 public class AppRTCStatus {
 
-	private String roomName;
+	public static final int OK = 200;
 
-	public boolean hasRoom() {
-		return (roomName != null);
-	}
-
-	public void setRoomName(String roomName) {
-		this.roomName = roomName;
-	}
+	public static final int ROOM_ALREADY_EXIST = 511;
 }
