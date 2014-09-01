@@ -17,6 +17,10 @@
   - Join room
   - Withdraw room
 
+## Status Code
+- 1st: {2: success, 4: client error, 5: server error}
+- 2nd: {0: common, 1: signaling server, 2: maria db, 3: redis, 4: argument, 5: ?}
+
 ## Event Code Explain
 
 - 1st: Who, {1: Broadcaster, 2: Viewer}
