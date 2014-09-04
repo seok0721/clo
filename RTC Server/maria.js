@@ -17,23 +17,28 @@ function log(message) {
   console.log('Maria: ' + message);
 }
 
-function read_broadcaster(email, passwd, callback) {
+function read_broadcaster(email, pwd, callback) {
   client
-  .query('SELECT * FROM TBL_BROADCASTER WHERE EMAIL = :email AND PASSWD = :passwd', {
+  .query(' SELECT *' +
+         '   FROM TBL_BROADCASTER' +
+         '  WHERE EMAIL  = :email' +
+         '    AND PASSWD = :pwd', {
     'email': email,
-    'passwd': passwd
+    'pwd': pwd
   })
   .on('result', function(result) {
     result
     .on('row', function(row) {
-      callback(null, inspect(row));
+      callback(null, row);
     })
     .on('error', function(err) {
-      callback(inspect(err));
-    })
-    .on('end', function(meta) {
-      callback(null, null, inspect(meta));
+      callback(err);
     });
+    /*
+    .on('end', function(meta) {
+      callback(null, null, meta);
+    });
+    */
   })
   .on('end', function() {
     log('Query end.');
