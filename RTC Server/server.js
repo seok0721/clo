@@ -4,45 +4,114 @@ var maria = require('./maria.js');
 var redis = require('./redis.js');
 var event = require('./event.js');
 var status = require('./status.js');
-var rooms = [];
 
-function log(message) {
-  console.log('Signaling Server: ' + message);
+function log(msg) {
+  console.log('Signaling Server: ' + msg);
 }
 
 io.sockets.on('connection', function(socket) {
+  function leaveRoom(room) {
+    socket.leave(room);
+
+    log('Host leave room.');
+  }
+
+  function destroyRoom() {
+    if(socket.room) {
+      log('Begin to destory room.');
+
+      io.sockets.in(socket.room).emit(event.B_DESTROY_ROOM, {
+        'room': socket.room
+      });
+      socket.leave(socket.room);
+      socket.room = null;
+
+      log('End to destory room.');
+    } else {
+      log('Host not has room.');
+    }
+  }
+
+  function destroySession() {
+    if(socket.sid) {
+      log('Begin to destory session.');
+
+      redis.destroy_session(socket.sid, function(err) {
+        if(err) {
+          log(err);
+        } else {
+          socket.sid = null;
+        }
+      });
+
+      log('End to destory session.');
+    } else {
+      log('Host not has session.');
+    }
+  }
+
   socket.on(event.B_LOGIN, function(data) {
-    var email = data.email;
-    var passwd = data.passwd;
+    var sid = data.sid; // Session key.
+    var email = data.email; // Broadcaster email.
+    var pwd = data.pwd; // Broadcaster md5 hash upper case string password.
 
-    log(inspect(data));
-
-    redis.exist_session(email, passwd, function(reply, message) {
-      log(reply);
-      log(message);
-
-      switch(reply) {
-      case status.OK:
+    redis.exist_session(sid, function(err, ret, msg) {
+      if(err) {
         socket.emit(event.B_LOGIN, {
-          'reply': reply,
-          'session': message
+          'ret': status.REDIS_ERROR,
+          'msg': msg
         });
-        break;
+        return;
+      }
+
+      switch(ret) {
       case status.SESSION_NOT_FOUND:
-        maria.read_broadcaster(email, passwd, function(err, data, meta) {
+        maria.read_broadcaster(email, pwd, function(err, data) {
           if(err) {
-            log(err);
-
-            // TODO socket.emit()
+            socket.emit(event.B_LOGIN, {
+              'ret': status.MARIA_ERROR,
+              'msg': err
+            });
+            return;
           }
+
+          redis.create_session(email, function(err, ret, msg) {
+            if(err) {
+              socket.emit(event.B_LOGIN, {
+                'ret': status.REDIS_ERROR,
+                'msg': err
+              });
+              return;
+            }
+
+            switch(ret) {
+            case status.OK:
+              socket.sid = msg;
+              socket.emit(event.B_LOGIN, {
+                'ret': status.OK,
+                'sid': msg
+              });
+
+              log('login, sid: ' + socket.sid);
+              break;
+            default:
+              socket.sid = msg;
+              socket.emit(event.B_LOGIN, {
+                'ret': status.SESSION_ALREADY_EXIST
+              });
+
+              log('login, sid: ' + socket.sid);
+              break;
+            }
+          });
         });
         break;
+      case status.OK:
+        socket.sid = msg;
       default:
-        log('login failure.');
-
         socket.emit(event.B_LOGIN, {
-          'reply': reply,
-          'message': message
+          'ret': ret,
+          'msg': msg
         });
         break;
       }
@@ -50,64 +119,106 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on(event.B_LOGOUT, function(data) {
+    destroyRoom();
+    destroySession();
     
+    log('logout, sid: ' + socket.sid);
   });
 
-/*
-  socket.on('LOGIN', function(data) {
-    log(data);
-
-    maria.read_broadcaster(data.email, function(err, data) {
-      if(err) {
-      } else {
-      }
-    });
-  });
-
-  socket.on('CREATE', function(data) {
-
-    redis.session_create('aaaa', function(code, message) {
-      console.log(code + ': ' + message);
-    });
-
+  socket.on(event.B_CREATE_ROOM, function(data) {
     var room = data.room;
+    var clients = io.sockets.clients(room);
 
-    if(rooms.indexOf(room) > -1) {
-      console.log(TAG + ': Already room exists.');
-
-      socket.emit('CREATE', {code: 500, message: "Already room exists."});
+    if(!socket.sid) {
+      log('Host is not broadcaster.');
       return;
     }
 
-    maria.read_broadcaster(data.email, function(err, data, meta) {
-      if(err) {
-        console.log(TAG + ': ' + err);
+    if(socket.room) {
+      socket.emit(event.B_CREATE_ROOM, {
+        'ret': status.OK,
+        'room': socket.room
+      });
+      log('Host already has room.');
+      return;
+    }
 
-        socket.emit('CREATE', {code: 500});
-      } else if(data) {
-        console.log(TAG + ': ' + rooms);
-        console.log(TAG + ': ' + room);
+    if(clients.length > 0) {
+      socket.emit(event.B_CREATE_ROOM, {
+        'ret': status.ROOM_ALREADY_EXIST,
+        'room': room
+      });
+      log('The other hosts already have room.');
+      return;
+    }
 
-        rooms.push(room);
-
-        socket.emit('CREATE', {code: 200});
-      } else {
-        console.log(TAG + ': ' + meta);
-      }
+    socket.room = room;
+    socket.join(room);
+    socket.emit(event.B_CREATE_ROOM, {
+      'ret': status.OK,
+      'room': room
     });
+    log('To create room: ' + room);
   });
 
-  socket.on('DESTROY', function(data) {
-    console.log(data);
+  socket.on(event.B_DESTROY_ROOM, function(data) {
+    var room = data.room;
 
-    socket.emit('DESTROY', {code: 200});
+    if(socket.room) {
+      destroyRoom();
+    } else {
+      leaveRoom(room);
+    }
   });
 
-  socket.on('disconnect', function(data) {
-    console.log(data);
+  socket.on(event.V_JOIN_ROOM, function(data) {
+    var room = data.room;
+    var sdp = data.sdp;
 
-    io.sockets.emit('user disconnected');
-  });
+    log(inspect(data));
+
+    socket.broadcast.emit(event.V_JOIN_ROOM, sdp);
+
+/*
+    if(!io.rooms.hasOwnProperty('/' + room)) {
+      log('"' + room + '" room not exists.');
+
+      socket.emit(event.V_JOIN_ROOM, {
+        'ret': status.ROOM_NOT_EXIST
+      });
+      return;
+    }
 */
+    if(socket.sid) {
+      // TODO Reference, appspot, apprtc.py, 492 line.
+      // TODO Broadcaster send sdp to viewer.
+    } else {
+      socket.join(room);
+
+      log('To join room, ' + room);
+    }
+  });
+
+  socket.on(event.V_WITHDRAW_ROOM, function(data) {
+    var room = data.room;
+
+    if(!socket.sid) {
+      socket.leave(room);
+
+      log('To join room, ' + room);
+    }
+  });
+
+  socket.on('disconnect', function() {
+    if(socket.sid) {
+      destroySession();
+    }
+
+    if(socket.room) {
+      destroyRoom();
+    }
+
+    log('Host disconnected.');
+  });
 });
 
