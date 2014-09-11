@@ -6,9 +6,14 @@ import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
 import org.json.JSONObject;
+import org.webrtc.PeerConnection;
 
-public class AppRTCEventHandler implements IOCallback {
+import android.util.Log;
 
+public class NodeEventHandler implements IOCallback {
+
+	private static final String TAG = NodeEventHandler.class.getSimpleName();
+	private PeerConnection connection;
 	private SocketIO socket;
 	private String room;
 
@@ -24,22 +29,28 @@ public class AppRTCEventHandler implements IOCallback {
 
 	@Override
 	public void on(String event, IOAcknowledge ack, Object... args) {
-		JSONObject data = (JSONObject)args[0];
+		JSONObject data = (JSONObject) args[0];
 
-		if(AppRTCEvent.B_CREATE_ROOM.equals(event)) {
+		if (NodeEvent.B_CREATE_ROOM.equals(event)) {
 			try {
 				int ret = data.getInt("ret");
 				String room = data.getString("room");
 
-				switch(ret) {
-				case AppRTCStatus.OK:
+				switch (ret) {
+				case NodeStatus.OK:
 					this.room = room;
 					break;
-				case AppRTCStatus.ROOM_ALREADY_EXIST:
+				case NodeStatus.ROOM_ALREADY_EXIST:
 					break;
 				}
-			} catch(Exception e) {
-				System.err.println(e.getMessage());
+			} catch (Exception e) {
+				Log.e(TAG, e.getMessage(), e);
+			}
+		} else if (NodeEvent.V_JOIN_ROOM.equals(event)) {
+			try {
+
+			} catch (Exception e) {
+				Log.e(TAG, e.getMessage(), e);
 			}
 		}
 	}
@@ -70,8 +81,16 @@ public class AppRTCEventHandler implements IOCallback {
 	public void clearRoom() {
 		room = null;
 	}
-	
+
 	public String getRoom() {
 		return room;
+	}
+
+	public PeerConnection getConnection() {
+		return connection;
+	}
+
+	public void setConnection(PeerConnection connection) {
+		this.connection = connection;
 	}
 }

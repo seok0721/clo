@@ -1,6 +1,6 @@
 package kr.ac.gachon.clo;
 
-public class AppRTCResponse {
+public class NodeStatus {
 
 	public static final int OK = 200;
 
@@ -15,4 +15,6 @@ public class AppRTCResponse {
 	public static final int SESSION_NOT_FOUND = 432;
 
 	public static final int GET_SESSION_ERROR = 433;
+	
+	public static final int ROOM_ALREADY_EXIST = 511;
 }

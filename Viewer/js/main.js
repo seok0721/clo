@@ -1,9 +1,9 @@
-var s = io.connect('http://211.189.19.82:10080/');
+var url = 'http://211.189.19.82:10080/';
+var socket;
 
-s.on('connect', function(){
-  console.log('connected');
-});
-
-s.on('news', function(room) {
-	console.log(room);
-});
+function connect() {
+	socket = io.connect(url);
+	socket.on('connect', function() {
+		console.log('connected');
+	});
+}
