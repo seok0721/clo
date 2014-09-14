@@ -28,17 +28,12 @@ function read_broadcaster(email, pwd, callback) {
   })
   .on('result', function(result) {
     result
-    .on('row', function(row) {
-      callback(null, row);
-    })
     .on('error', function(err) {
       callback(err);
-    });
-    /*
+    })
     .on('end', function(meta) {
-      callback(null, null, meta);
+      callback(null, meta);
     });
-    */
   });
   /*
   .on('end', function() {
