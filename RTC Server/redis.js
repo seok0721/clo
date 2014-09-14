@@ -17,82 +17,84 @@ function log(message) {
  * Main Routine
  */
 redis.on('error', function(err) {
-  log(err);
+  log('error: ' + err);
 });
 
 redis.on('ready', function() {
-  log('flush all.');
+  log('ready');
 
   redis.flushall();
 });
 
-function create_room(room, callback) {
-
-}
-
-function create_session(email, callback) {
-  redis.get(email, function(err, ret) {
-    var session_key;
-    var session_value;
-
-    if(err) {
-      log('Error occur on to create session.');
-
-      callback(err, status.REDIS_ERROR);
-    } else if(ret) {
-      log('Session already exists.');
-
-      callback(null, status.SESSION_ALREADY_EXIST, ret);
-    } else {
-      log('To create session success.');
-
-      // If you want to make session key start character, using next line
-      // do {
-      //   session_key = random.generate(32).toUpperCase();
-      // } while(session_key[0] >= '0' && session_key[0] <= '9');
-
-      session_key = random.generate(32).toUpperCase();
-      session_value = {
-        'email': email
-      };
-
-      redis.set(session_key, session_value);
-
-      callback(null, status.OK, session_key);
-    }
-  });
-}
-
-function destroy_session(sid, callback) {
-  redis.get(sid, function(err, ret) {
+// BEGIN exist_session
+function /* es */ exist_session(email, callback) {
+  redis.llen('broadcaster', function(err, len) {
     if(err) {
       callback(err);
-    } else {
-      redis.del(sid);
-      callback(null);
+      return;
     }
+
+    if(len == 0) {
+      callback('empty set');
+      return;
+    }
+
+    es_list_length_callback(len, callback);
   });
 }
 
-function exist_session(sid, callback) {
-  redis.get(sid, function(err, ret) {
+function es_list_length_callback(len, callbeck) {
+  redis.lrange('broadcaster', 0, len, function(err, list) {
     if(err) {
-      log('Error occured during to get session.');
-      callback(err, status.REDIS_ERROR, err);
-    } else if(ret) {
-      log('Session exists. sid: ' + sid);
-      callback(null, status.OK, sid);
-    } else {
-      log('Session not exists.');
-      callback(null, status.SESSION_NOT_FOUND);
+      callback(err);
+      return;
     }
+
+    es_list_range_callback(list, callback);
   });
 }
+
+function es_list_range_callback(list, callback) {
+  for(i = 0; i < len; i++) {
+    if(JSON.parse(ret[i]).email == email) {
+      callback(null, true);
+      return;
+    }
+  }
+
+  callback(null, false);
+}
+// END exist_session
+
+// BEGIN create_session
+function /* cs */ create_session(email, callback) {
+  redis.rpush('broadcaster', JSON.stringify({
+    'email': email
+  }));
+}
+// END create_session
+
+// BEGIN destroy_session
+function /* ds */ destroy_session(email, callback) {
+  redis.llen('broadcaster', function(err, len) {
+    if(err) {
+      log(err);
+      return;
+    }
+
+    if(len == 0) {
+      return;
+    }
+
+//    ds_list_lrange_session
+  });
+}
+// END destroy_session
 
 /*
  * Export Symbol
  */
+module.exports.exist_session = exist_session;
 module.exports.create_session = create_session;
 module.exports.destroy_session = destroy_session;
-module.exports.exist_session = exist_session;
 

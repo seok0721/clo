@@ -39,12 +39,14 @@ function read_broadcaster(email, pwd, callback) {
       callback(null, null, meta);
     });
     */
-  })
+  });
+  /*
   .on('end', function() {
     log('Query end.');
 
     callback(null, null, 'End of query.');
   });
+  */
 }
 
 /*

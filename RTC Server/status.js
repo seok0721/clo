@@ -15,6 +15,7 @@
 /*
  * Export Symbol
  */
+module.exports.SUCCESS = 0;
 module.exports.OK = 200;
 module.exports.LOGIN = 201;
 module.exports.LOGOUT = 202;
