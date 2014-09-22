@@ -1,4 +1,4 @@
-package kr.ac.gachon.clo.utils;
+package kr.ac.gachon.clo.apprtc.util;
 
 import java.security.MessageDigest;
 
