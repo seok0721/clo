@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import kr.ac.gachon.clo.apprtc.util.Log;
-
 import org.json.JSONObject;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
+
+import android.util.Log;
 
 public class SocketHandler implements IOCallback {
 
