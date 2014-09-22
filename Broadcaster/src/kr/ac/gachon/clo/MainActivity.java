@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
 
 		setupPeerConnectionFactory();
 
-		createMediaStream();
+		// createMediaStream();
 
 		setupPeerConnection();
 	}
@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
 		nodeHandler.setConnection(connection);
 		callback.setConnection(connection);
 		connection.updateIce(iceServers, new MediaConstraints());
-		connection.addStream(localMediaStream, new MediaConstraints());
+		// connection.addStream(localMediaStream, new MediaConstraints());
 		connection.createOffer(new CreateOfferCallback(connection, nodeClient), new MediaConstraints());
 	}
 
