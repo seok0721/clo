@@ -17,7 +17,7 @@ import android.util.Log;
 public class AppRTCManager {
 
 	private static final String TAG = AppRTCManager.class.getSimpleName();
-	private PeerConnectionPool connectionPool = PeerConnectionPool.getInstance();
+	private PeerConnectionPool connectionPool;
 	private SessionDescription localDescription; 
 	private String title;
 	private SocketIO socket;
@@ -26,6 +26,8 @@ public class AppRTCManager {
 
 	public void getDescription() {
 		if(localDescription == null) {
+			lazyInitConnectionPool();
+
 			connectionPool.getConnection().getLocalDescription();
 		}
 	}
@@ -76,6 +78,8 @@ public class AppRTCManager {
 
 		socket.emit("start");
 		isStarted = true;
+
+		lazyInitConnectionPool();
 
 		PeerConnection connection = connectionPool.getConnection();
 		final OfferAnswerCallback callback = new OfferAnswerCallback(connection);
@@ -146,6 +150,12 @@ public class AppRTCManager {
 			socket.emit("offer", json);
 		} catch(Exception e) {
 			Log.e(TAG, e.getMessage(), e);
+		}
+	}
+
+	private void lazyInitConnectionPool() {
+		if(connectionPool == null) {
+			connectionPool = PeerConnectionPool.getInstance();
 		}
 	}
 }

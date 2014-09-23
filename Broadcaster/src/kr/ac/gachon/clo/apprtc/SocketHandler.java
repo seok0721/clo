@@ -18,7 +18,7 @@ import android.util.Log;
 public class SocketHandler implements IOCallback {
 
 	private static final String TAG = SocketHandler.class.getSimpleName();
-	private PeerConnectionPool connectionPool = PeerConnectionPool.getInstance();
+	private PeerConnectionPool connectionPool;
 	private boolean isLogin = false;
 	private PipedInputStream chatInputStream;
 	private PipedOutputStream chatOutputStream = new PipedOutputStream();
@@ -54,6 +54,8 @@ public class SocketHandler implements IOCallback {
 
 			if("answer".equals(event)) {
 				String sdp = data.getString("sdp");
+
+				lazyInitConnectionPool();
 
 				PeerConnection connection = connectionPool.getConnection();
 				OfferAnswerCallback callback = new OfferAnswerCallback(connection);
@@ -101,5 +103,11 @@ public class SocketHandler implements IOCallback {
 		this.chatInputStream = chatInputStream;
 
 		chatOutputStream.connect(chatInputStream);
+	}
+
+	private void lazyInitConnectionPool() {
+		if(connectionPool == null) {
+			connectionPool = PeerConnectionPool.getInstance();
+		}
 	}
 }

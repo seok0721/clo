@@ -20,17 +20,20 @@ public class MainActivity extends Activity {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 	private CameraView cameraView;
-	private AppRTCManager manager = new AppRTCManager();
+	private AppRTCManager manager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		PeerConnectionFactory.initializeAndroidGlobals(this, true, true);
+		manager  = new AppRTCManager();
+
 		initSocket();
 		initWindow();
 		initCameraView();
 
-		PeerConnectionFactory.initializeAndroidGlobals(this, true, true);
+		runTestStart();
 	}
 
 	private void initSocket() {
@@ -38,8 +41,6 @@ public class MainActivity extends Activity {
 			manager.setSocketHandler(new SocketHandler());
 			manager.setSocket(new SocketIO("http://211.189.20.193:10080/"));
 			manager.connect();
-			// manager.login("seok0721@gmail.com", "0000");
-			// manager.create("news");
 		} catch(MalformedURLException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
@@ -60,5 +61,17 @@ public class MainActivity extends Activity {
 
 		// setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setContentView(cameraView);
+	}
+
+	private void runTestStart() {
+		try {
+			manager.login("seok0721@gmail.com", "0000");
+			Thread.sleep(500);
+			manager.create("news");
+			Thread.sleep(500);
+			manager.start();
+		} catch(InterruptedException e) {
+			Log.e(TAG, e.getMessage(), e);
+		}
 	}
 }
