@@ -5,23 +5,19 @@ var redis = require('redis').createClient();
 var status = require('./status.js');
 var crypto = require('crypto');
 var random = require('randomstring');
-
-/*
- * Global Function
- */
-function log(message) {
-  console.log('Redis: ' + message);
-}
+var Log = require('./logger.js');
+var inspect = require('util').inspect;
+var TAG = 'redis.js';
 
 /*
  * Main Routine
  */
 redis.on('error', function(err) {
-  log('error: ' + err);
+  Log.e(TAG, err);
 });
 
 redis.on('ready', function() {
-  log('ready');
+  Log.i(TAG, 'ready');
 
   redis.flushall();
 });
@@ -29,12 +25,13 @@ redis.on('ready', function() {
 function /* er */ exist_room(email, callback) {
   redis.hget('broadcaster', email, function(err, data) {
     if(err) {
+      Log.e(TAG + ' exist_room', err);
       callback(err);
       return;
     } 
 
     data = JSON.parse(ret);
-
+    Log.i(TAG + ' exist_room', data);
     callback(null, data.title ? true : false);
   });
 }
@@ -43,10 +40,12 @@ function /* er */ exist_room(email, callback) {
 function /* es */ exist_session(email, callback) {
   redis.hget('broadcaster', email, function(err, data) {
     if(err) {
+      Log.e(TAG + ' exist_session', err);
       callback(err);
       return;
     }
 
+    Log.i(TAG + ' exist_session', inspect(data));
     callback(null, data ? true : false);
   });
 }
@@ -72,10 +71,12 @@ function /* es */ exist_session(email, callback) {
 function es_list_length_callback(len, callbeck) {
   redis.lrange('broadcaster', 0, len, function(err, list) {
     if(err) {
+      Log.e(TAG + ' es_list_length_callback', err);
       callback(err);
       return;
     }
 
+    Log.i(TAG + ' es_list_length_callback', inspect(list));
     es_list_range_callback(list, callback);
   });
 }
@@ -83,11 +84,13 @@ function es_list_length_callback(len, callbeck) {
 function es_list_range_callback(list, callback) {
   for(i = 0; i < len; i++) {
     if(JSON.parse(ret[i]).email == email) {
+      Log.i(TAG + ' es_list_range_callback', true);
       callback(null, true);
       return;
     }
   }
 
+  Log.i(TAG + ' es_list_range_callback', false);
   callback(null, false);
 }
 // END exist_session
@@ -100,6 +103,7 @@ function /* cs */ create_session(email) {
 function /* cr */ create_room(email, title, callback) {
   redis.hget('broadcaster', email, function(err, ret) {
     if(err) {
+      Log.e(TAG + ' create_room', err);
       callback(err);
       return;
     }
@@ -109,6 +113,7 @@ function /* cr */ create_room(email, title, callback) {
 
     redis.hset('broadcaster', email, JSON.stringify(data));
 
+    Log.i(TAG + ' create_room', inspect(data));
     callback(null);
   });
 }
@@ -116,13 +121,14 @@ function /* cr */ create_room(email, title, callback) {
 function /* dr */ destroy_room(email) {
   redis.hget('broadcaster', email, function(err, ret) {
     if(err) {
+      Log.e(TAG + ' create_room', err);
       callback(err);
       return;
     }
 
     data = JSON.parse(ret);
     delete data.title;
-
+    Log.i(TAG + ' destroy_room', inspect(data));
     redis.hset('broadcaster', email, JSON.stringify(data));
   });
 }
@@ -143,7 +149,7 @@ function /* ds */ destroy_session(email) {
       return;
     }
 
-    log('destroy session, email: ' + email);
+    Log.i(TAG + ' destroy_session', email);
   });
 }
 
