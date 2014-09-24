@@ -156,9 +156,9 @@ function socket_handler(socket) {
 
       socket.room = room;
       socket.join(room);
-      socket.broadcast.to(room).emit('join');
+      socket.broadcast.to(room).emit('join', data);
 
-      Log.i('join, room: ' + room);
+      Log.i(TAG + ' join_handler', 'room: ' + JSON.stringify(data));
     });  
   }
 

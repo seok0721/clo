@@ -22,8 +22,8 @@ redis.on('ready', function() {
   redis.flushall();
 });
 
-function /* er */ exist_room(email, callback) {
-  redis.hget('broadcaster', email, function(err, data) {
+function /* er */ exist_room(room, callback) {
+  redis.hget('broadcaster', room, function(err, data) {
     if(err) {
       Log.e(TAG + ' exist_room', err);
       callback(err);
@@ -37,7 +37,7 @@ function /* er */ exist_room(email, callback) {
     }
 
     data = JSON.parse(data);
-    Log.i(TAG + ' exist_room', data);
+    Log.i(TAG + ' exist_room', JSON.stringify(data));
     callback(null, data.title ? true : false);
   });
 }
