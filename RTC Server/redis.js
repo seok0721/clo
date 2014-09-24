@@ -28,9 +28,15 @@ function /* er */ exist_room(email, callback) {
       Log.e(TAG + ' exist_room', err);
       callback(err);
       return;
-    } 
+    }
 
-    data = JSON.parse(ret);
+    if(!data) {
+      Log.i(TAG + ' exist_room', 'Room not exists.');
+      callback(null, false);
+      return;
+    }
+
+    data = JSON.parse(data);
     Log.i(TAG + ' exist_room', data);
     callback(null, data.title ? true : false);
   });
@@ -126,9 +132,9 @@ function /* dr */ destroy_room(email) {
       return;
     }
 
+    Log.i(TAG + ' destroy_room', inspect(data));
     data = JSON.parse(ret);
     delete data.title;
-    Log.i(TAG + ' destroy_room', inspect(data));
     redis.hset('broadcaster', email, JSON.stringify(data));
   });
 }
