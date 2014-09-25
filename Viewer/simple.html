@@ -6,11 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/css/main.css" />
     <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="/js/socket.io.min.js"></script>
-    <script type="text/javascript" src="/js/logger.js"></script>
-    <script type="text/javascript" src="/js/main.js"></script>
+    <script type="text/javascript" src="/js/simple.js"></script>
   </head>
   <body>
     <br />
@@ -23,12 +21,6 @@
             </div>
             <div class="panel-body">
               <form class="form-horizontal">
-                <div class="form-group">
-                  <label for="txtRoomId" class="col-sm-2 control-label">Room Id</label>
-                  <div class="col-sm-10">
-                    <input type="text" class="form-control" id="txtRoomId" placeholder="Room Id" value="seok0721@gmail.com" />
-                  </div>
-                </div>
                 <button id="btnConnect" type="button">
                   Connect
                 </button>
@@ -42,9 +34,7 @@
               <strong>Broadcaster Camera</strong>
             </div>
             <div id="divScreen" class="panel-body">
-              <!--
-              <video id="vidRemote" class="col-sm-12" autoplay="true"></video>
-              -->
+              <video id="vidRemote" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>
             </div>
           </div>
         </div>
