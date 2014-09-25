@@ -10,7 +10,6 @@ public class OfferAnswerCallback implements SdpObserver {
 
 	private static final String TAG = OfferAnswerCallback.class.getSimpleName();
 	private PeerConnection connection;
-	private SessionDescription session;
 
 	public OfferAnswerCallback(PeerConnection connection) {
 		this.connection = connection;
@@ -19,10 +18,9 @@ public class OfferAnswerCallback implements SdpObserver {
 	@Override
 	public void onCreateSuccess(final SessionDescription session) {
 		Log.d(TAG, "onCreateSuccess");
+		Log.d(TAG, session.description);
 
 		connection.setLocalDescription(this, session);
-
-		this.session = session;
 	}
 
 	@Override
@@ -39,10 +37,8 @@ public class OfferAnswerCallback implements SdpObserver {
 	@Override
 	public void onSetFailure(String message) {
 		Log.e(TAG, "onSetFailure");
+		Log.e(TAG, connection.signalingState().name());
+		Log.e(TAG, connection.iceConnectionState().name());
 		Log.e(TAG, message);
-	}
-
-	public SessionDescription getSessionDescription() {
-		return session;
 	}
 }

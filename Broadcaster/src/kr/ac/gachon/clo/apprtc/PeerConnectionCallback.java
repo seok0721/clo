@@ -18,12 +18,21 @@ public class PeerConnectionCallback implements PeerConnection.Observer {
 	@Override
 	public void onSignalingChange(SignalingState state) {
 		Log.d(TAG, "onSignalingChange");
+		Log.d(TAG, "==================================");
 		Log.d(TAG, state.name());
+		Log.d(TAG, state.toString());
+		Log.d(TAG, "==================================");
 	}
 
 	@Override
 	public void onRenegotiationNeeded() {
 		Log.d(TAG, "onRenegotiationNeeded");
+	}
+
+	@Override
+	public void onAddStream(MediaStream media) {
+		Log.d(TAG, media.label());
+		Log.d(TAG, media.videoTracks.toArray().length + "");
 	}
 
 	@Override
@@ -46,7 +55,7 @@ public class PeerConnectionCallback implements PeerConnection.Observer {
 
 	@Override
 	public void onIceCandidate(IceCandidate iceCandidate) {
-		Log.d(TAG, "onIceCandidate(IceCandidate");
+		Log.d(TAG, "onIceCandidate");
 		Log.d(TAG, iceCandidate.sdp);
 
 		connection.addIceCandidate(iceCandidate);
@@ -60,11 +69,6 @@ public class PeerConnectionCallback implements PeerConnection.Observer {
 	@Override
 	public void onDataChannel(DataChannel arg0) {
 		Log.d(TAG, arg0.label());
-	}
-
-	@Override
-	public void onAddStream(MediaStream media) {
-		Log.d(TAG, media.label());
 	}
 
 	public PeerConnection getConnection() {

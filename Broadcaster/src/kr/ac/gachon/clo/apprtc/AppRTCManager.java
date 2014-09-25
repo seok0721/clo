@@ -18,7 +18,7 @@ public class AppRTCManager {
 
 	private static final String TAG = AppRTCManager.class.getSimpleName();
 	private PeerConnectionPool connectionPool;
-	private SessionDescription localDescription; 
+	private SessionDescription localDescription;
 	private String title;
 	private SocketIO socket;
 	private SocketHandler socketHandler;
@@ -81,7 +81,7 @@ public class AppRTCManager {
 
 		lazyInitConnectionPool();
 
-		PeerConnection connection = connectionPool.getConnection();
+		final PeerConnection connection = connectionPool.getConnection();
 		final OfferAnswerCallback callback = new OfferAnswerCallback(connection);
 
 		connection.createOffer(callback, new MediaConstraints());
@@ -92,8 +92,8 @@ public class AppRTCManager {
 			public void run() {
 				while(isStarted) {
 					try {
-						if(callback.getSessionDescription() != null) {
-							offer(callback.getSessionDescription().description);
+						if(connection.getLocalDescription() != null) {
+							offer(connection.getLocalDescription().description);
 						}
 
 						Thread.sleep(5000);

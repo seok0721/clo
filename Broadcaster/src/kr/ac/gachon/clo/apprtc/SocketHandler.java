@@ -11,6 +11,8 @@ import java.io.PipedOutputStream;
 import org.json.JSONObject;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
+import org.webrtc.StatsObserver;
+import org.webrtc.StatsReport;
 import org.webrtc.SessionDescription.Type;
 
 import android.util.Log;
@@ -60,8 +62,28 @@ public class SocketHandler implements IOCallback {
 				PeerConnection connection = connectionPool.getConnection();
 				OfferAnswerCallback callback = new OfferAnswerCallback(connection);
 
+				connection.getStats(new StatsObserver() {
+					
+					@Override
+					public void onComplete(StatsReport[] arg0) {
+						for(int i = 0; i < arg0.length; i++) {
+							Log.d(TAG, arg0[i].id);
+							Log.d(TAG, arg0[i].type);
+							Log.d(TAG, arg0[i].timestamp + "");
+							for(int j = 0; j < arg0[i].values.length; j++) {
+								Log.d(TAG, arg0[i].values[j].name);
+								Log.d(TAG, arg0[i].values[j].value);
+							}
+						}
+					}
+				}, null);
+				
 				connection.setRemoteDescription(callback, new SessionDescription(Type.ANSWER, sdp));
 				return;
+			}
+			
+			if("join".equals(event)) {
+				Log.i(TAG, event);
 			}
 
 			throw new Exception(String.format("Unknown event: %s", event));

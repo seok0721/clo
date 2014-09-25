@@ -27,11 +27,11 @@ public class ConnectTest {
 		MediaConstraints m2 = new MediaConstraints();
 		PeerConnection pc1 = factory.createPeerConnection(iceServers, m1, callback1);
 		PeerConnection pc2 = factory.createPeerConnection(iceServers, m2, callback2);
-		iceServers.add(new IceServer("stun.l.google.com:19302"));
-		iceServers.add(new IceServer("stun1.l.google.com:19302"));
-		iceServers.add(new IceServer("stun2.l.google.com:19302"));
-		iceServers.add(new IceServer("stun3.l.google.com:19302"));
-		iceServers.add(new IceServer("stun4.l.google.com:19302"));
+		iceServers.add(new IceServer("stun:stun.l.google.com:19302"));
+		iceServers.add(new IceServer("stun:stun1.l.google.com:19302"));
+		iceServers.add(new IceServer("stun:stun2.l.google.com:19302"));
+		iceServers.add(new IceServer("stun:stun3.l.google.com:19302"));
+		iceServers.add(new IceServer("stun:stun4.l.google.com:19302"));
 		pc1.updateIce(iceServers, new MediaConstraints());
 		pc2.updateIce(iceServers, new MediaConstraints());
 
