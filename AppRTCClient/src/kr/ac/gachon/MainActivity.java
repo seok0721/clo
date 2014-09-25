@@ -32,6 +32,7 @@ import org.webrtc.VideoTrack;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
+import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
@@ -80,6 +81,15 @@ public class MainActivity extends Activity {
 		VideoTrack videoTrack = factory.createVideoTrack("CLOv0", videoSource);
 		videoTrack.addRenderer(new VideoRenderer(VideoRendererGui.create(0, 0, 100, 100)));
 		mediaStream.addTrack(videoTrack);
+		mediaStream.addTrack(factory.createAudioTrack("CLOa0", factory.createAudioSource(createOfferConstraint())));
+
+		AudioManager audioManager = ((AudioManager) getSystemService(AUDIO_SERVICE));
+		// TODO(fischman): figure out how to do this Right(tm) and remove the
+		// suppression.
+		@SuppressWarnings("deprecation")
+		boolean isWiredHeadsetOn = audioManager.isWiredHeadsetOn();
+		audioManager.setMode(isWiredHeadsetOn ? AudioManager.MODE_IN_CALL : AudioManager.MODE_IN_COMMUNICATION);
+		audioManager.setSpeakerphoneOn(!isWiredHeadsetOn);
 
 		List<IceServer> iceServers = new LinkedList<IceServer>();
 		iceServers.add(new IceServer("stun:stun.l.google.com:19302"));
@@ -90,6 +100,16 @@ public class MainActivity extends Activity {
 		connection.addStream(mediaStream, new MediaConstraints());
 		socket = new SocketIO("http://211.189.20.193:10080");
 		socket.connect(new IOCallbackImpl());
+	}
+
+	private MediaConstraints createOfferConstraint() {
+		MediaConstraints sdpMediaConstraints = new MediaConstraints();
+		sdpMediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair(
+				"OfferToReceiveAudio", "true"));
+		sdpMediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair(
+				"OfferToReceiveVideo", "true"));
+
+		return new MediaConstraints();
 	}
 
 	class ObserverImpl implements Observer {
@@ -211,7 +231,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onConnect() {
-			connection.createOffer(sdpObserver, new MediaConstraints());
+			connection.createOffer(sdpObserver, createOfferConstraint());
 		}
 
 		@Override
