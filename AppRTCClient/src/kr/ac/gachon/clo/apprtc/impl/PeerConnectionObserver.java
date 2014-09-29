@@ -23,6 +23,8 @@ public class PeerConnectionObserver implements Observer {
 	@Override
 	public void onRenegotiationNeeded() {
 		Log.i(TAG, "onRenegotiationNeeded");
+
+		connection.updateIce(new IceServers(), new SrtpMediaConstraints());
 	}
 
 	@Override

@@ -27,11 +27,11 @@ public class SignalingService implements ISignalingService {
 	private static SignalingService instance;
 	private BlockingQueue<SessionDescription> queue = new ArrayBlockingQueue<SessionDescription>(1);
 	private Boolean isRunning = false;
-	private Boolean repeatToSendOffer;
-	private Thread offerHandler;
+	private Boolean doSendOffer = false;
+	private Thread background;
 	private SocketIO socket;
 	private Lock lock;
-	private Condition doNextJob;
+	private Condition runtime;
 
 	public static SignalingService getInstance() {
 		if(instance == null) {
@@ -44,41 +44,53 @@ public class SignalingService implements ISignalingService {
 	@Override
 	public void start(String url) {
 		synchronized(isRunning) {
-			if(isRunning && (offerHandler != null) && offerHandler.isAlive()) {
-				Log.i(TAG, "Background thread is already running.");
-				return;
+			if(isRunning) {
+				Log.i(TAG, "Signaling service is already running," + background.getState().name());
+			} else {
+				try {
+					if(socket != null && socket.isConnected()) {
+						socket.disconnect();
+					}
+
+					queue.clear();
+
+					socket = new SocketIO(url);
+					socket.connect(instance);
+
+					isRunning = true;
+
+					background = new Thread(instance);
+					background.start();
+				} catch(Exception e) {
+					Log.e(TAG, e.getMessage(), e);
+				}
 			}
-
-			try {
-				socket = new SocketIO(url);
-				socket.connect(instance);
-			} catch(Exception e) {
-				Log.e(TAG, e.getMessage(), e);
-				return;
-			}
-
-			isRunning = true;
-
-			offerHandler = new Thread(instance);
-			offerHandler.start();
 		}
 	}
 
 	@Override
 	public void stop() {
 		synchronized(isRunning) {
-			queue.clear();
-			isRunning = false;
-			offerHandler.interrupt();
+			if(!isRunning) {
+				Log.i(TAG, "Background thread is stopped.");
+			} else {
+				isRunning = false;
+
+				queue.clear();
+				socket.disconnect();
+
+				background.interrupt();
+			}
 		}
 	}
 
 	@Override
 	public void runNextJob() {
-		lock.lock();
-		repeatToSendOffer = false;
-		doNextJob.signal();
-		lock.unlock();
+		synchronized(doSendOffer) {
+			doSendOffer = false;
+
+			signal();
+		}
 	}
 
 	@Override
@@ -95,28 +107,38 @@ public class SignalingService implements ISignalingService {
 
 	@Override
 	public void run() {
+		Log.i(TAG, "Signaling service start.");
+
 		lock.lock();
 
 		try {
 			while(isRunning) {
+				Log.i(TAG, "Before take session description.");
 				SessionDescription session = queue.take();
-				repeatToSendOffer = true;
 
+				synchronized(doSendOffer) {
+					doSendOffer = true;
+				}
+
+				Log.i(TAG, "Make json data...");
 				JSONObject data = new JSONObject();
 
 				try {
 					data.put("sdp", session.description);
-				} catch(JSONException ex) { 
-					Log.e(TAG, ex.getMessage(), ex);
+				} catch(JSONException e) { 
+					Log.e(TAG, e.getMessage(), e);
 				}
 
-				for(;;) {
+				Log.i(TAG, "Loop emit offer...");
+				while(isRunning) {
+					Log.i(TAG, "Emit offer...");
 					socket.emit("offer", data);
 
 					try {
-						doNextJob.await(2, TimeUnit.SECONDS);
+						Log.i(TAG, "Timer running...");
+						runtime.await(2, TimeUnit.SECONDS);
 
-						if(!repeatToSendOffer) {
+						if(!doSendOffer) {
 							Log.i(TAG, "Handle next offer...");
 							break;
 						}
@@ -125,12 +147,19 @@ public class SignalingService implements ISignalingService {
 						break;
 					}
 				}
+
+				if(!isRunning) {
+					Log.i(TAG, "Stop signaling service...");
+					break;
+				}
 			}
 		} catch(InterruptedException e) {
 			Log.i(TAG, "Stop signaling service...");
 		}
 
 		lock.unlock();
+
+		Log.i(TAG, "Signaling service stop.");
 	}
 
 	public void setSocket(SocketIO socket) {
@@ -139,20 +168,23 @@ public class SignalingService implements ISignalingService {
 
 	@Override
 	public void on(String event, IOAcknowledge ack, Object... param) {
-		if(!isRunning) {
-			return;
-		}
-
 		try {
 			if("answer".equals(event)) {
+				Log.i(TAG, "Receive event answer.");
 				JSONObject data = (JSONObject)param[0];
 
+				Log.i(TAG, "Create answer session description...");
 				SessionDescription session = new SessionDescription(Type.ANSWER, data.getString("sdp"));
+
+				Log.i(TAG, "Retrieve peer connection from pool...");
 				AnswerObserver observer = new AnswerObserver();
 				PeerConnection connection = PeerConnectionPool.getInstance().dequeue();
 				observer.setPeerConnection(connection);
+
+				Log.i(TAG, "Set remote description...");
 				connection.setRemoteDescription(observer, session);
 
+				Log.i(TAG, "End of answer handling.");
 				return;
 			}
 
@@ -191,6 +223,12 @@ public class SignalingService implements ISignalingService {
 
 	private SignalingService() {
 		lock = new ReentrantLock();
-		doNextJob = lock.newCondition();
+		runtime = lock.newCondition();
+	}
+
+	private void signal() {
+		lock.lock();
+		runtime.signal();
+		lock.unlock();
 	}
 }

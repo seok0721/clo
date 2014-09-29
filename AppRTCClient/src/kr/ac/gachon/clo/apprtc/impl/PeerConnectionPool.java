@@ -27,6 +27,10 @@ public class PeerConnectionPool implements IPeerConnectionPool {
 		return instance;
 	}
 
+	public int size() {
+		return queue.size();
+	}
+
 	@Override
 	public void accumulate(PeerConnection connection) {
 		connectionSet.add(connection);
@@ -57,7 +61,6 @@ public class PeerConnectionPool implements IPeerConnectionPool {
 		while(iter.hasNext()) {
 			PeerConnection connection = iter.next();
 			iter.remove();
-
 			connection.close();
 		}
 
@@ -82,7 +85,7 @@ public class PeerConnectionPool implements IPeerConnectionPool {
 			try {
 				return queue.take();
 			} catch(Exception e) {
-				Log.e(TAG, e.getMessage(), e);
+				Log.i(TAG, "Maybe signaling service will stop...");
 			}
 		}
 	}

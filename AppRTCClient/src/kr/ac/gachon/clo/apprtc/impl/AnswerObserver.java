@@ -30,12 +30,14 @@ public class AnswerObserver implements SdpObserver {
 		Log.i(TAG, "onSetSuccess");
 
 		PeerConnectionPool.getInstance().accumulate(connection);
+
+		PeerConnectionGenerator.getInstance().orderToCreateConnection();
 	}
 
 	@Override
 	public void onSetFailure(String error) {
 		Log.i(TAG, String.format("onSetFailure, %s", error));
 
-		connection.dispose();
+		PeerConnectionPool.getInstance().remove(connection);
 	}
 }

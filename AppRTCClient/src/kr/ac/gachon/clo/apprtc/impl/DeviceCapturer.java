@@ -22,7 +22,6 @@ public class DeviceCapturer {
 	private PeerConnectionFactory factory;
 	private MediaStream mediaStream;
 	private VideoTrack videoTrack;
-	private VideoSource videoSource;
 	private AudioTrack audioTrack;
 
 	public static DeviceCapturer getInstance(PeerConnectionFactory factory) {
@@ -35,20 +34,6 @@ public class DeviceCapturer {
 
 	public MediaStream getMediaStream() {
 		return mediaStream;
-	}
-
-	public VideoSource getVideoSource() {
-		videoSource.stop();
-
-		for(AudioTrack track : mediaStream.audioTracks) {
-			mediaStream.removeTrack(track);
-		}
-
-		for(VideoTrack track : mediaStream.videoTracks) {
-			mediaStream.removeTrack(track);
-		}
-
-		return videoSource;
 	}
 
 	private DeviceCapturer(PeerConnectionFactory factory) {
@@ -73,7 +58,7 @@ public class DeviceCapturer {
 		VideoCapturer videoCapturer = VideoCapturer.create(DEVICE_NAME);
 
 		Log.i(TAG, "Create video source...");
-		videoSource = factory.createVideoSource(videoCapturer, new MediaConstraints());
+		VideoSource videoSource = factory.createVideoSource(videoCapturer, new MediaConstraints());
 
 		Log.i(TAG, "Create video track...");
 		videoTrack = factory.createVideoTrack(String.format("%sv0", LABEL), videoSource);
