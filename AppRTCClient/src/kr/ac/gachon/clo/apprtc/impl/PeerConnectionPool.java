@@ -33,14 +33,35 @@ public class PeerConnectionPool implements IPeerConnectionPool {
 	}
 
 	@Override
-	public void flush() {
+	public void remove(PeerConnection connection) {
+		Iterator<PeerConnection> iter = connectionSet.iterator();
+
+		while(iter.hasNext()) {
+			PeerConnection savedConnection = iter.next();
+
+			if(connection != savedConnection) {
+				continue;
+			}
+
+			iter.remove();
+			connection.close();
+
+			return;
+		}
+	}
+
+	@Override
+	public void release() {
 		Iterator<PeerConnection> iter = connectionSet.iterator();
 
 		while(iter.hasNext()) {
 			PeerConnection connection = iter.next();
-			connection.dispose();
 			iter.remove();
+
+			connection.close();
 		}
+
+		queue.clear();
 	}
 
 	@Override

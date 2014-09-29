@@ -1,8 +1,6 @@
 package kr.ac.gachon.clo;
 
-import kr.ac.gachon.clo.apprtc.impl.AnswerHandler;
-import kr.ac.gachon.clo.apprtc.impl.OfferHandler;
-import kr.ac.gachon.clo.apprtc.impl.SocketClient;
+import kr.ac.gachon.clo.apprtc.impl.BroadcastService;
 
 import org.webrtc.PeerConnectionFactory;
 
@@ -15,7 +13,9 @@ import android.widget.Button;
 public class ShootingActivity extends Activity {
 
 	private static final String TAG = ShootingActivity.class.getSimpleName();
-	private SocketClient client;
+	private ShootingView shootingView;
+	private Button btnStart;
+	private Button btnStop;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,31 +23,33 @@ public class ShootingActivity extends Activity {
 
 		PeerConnectionFactory.initializeAndroidGlobals(this, true, true);
 
-		initShootingView();
-		bind();
-
-		client = new SocketClient();
-		
-
-		AnswerHandler.start();
-//		OfferHandler.start(client);
+		initView();
+		bindEvent();
 	}
 
-	private void initShootingView() {
+	private void initView() {
 		setContentView(R.layout.shooting);
 
-		ShootingView shootingView = (ShootingView)findViewById(R.id.shootingView);
-		shootingView.setScreenSize(this);
+		shootingView = (ShootingView)findViewById(R.id.shootingView);
+		shootingView.init(this);
 	}
 
-	private void bind() {
-		Button btnStart = (Button)findViewById(R.id.btnStart);
-
+	private void bindEvent() {
+		btnStart = (Button)findViewById(R.id.btnStart);
 		btnStart.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-//				client.sendOffer();
+				BroadcastService.getInstance().start();
+			}
+		});
+
+		btnStop = (Button)findViewById(R.id.btnStop);
+		btnStop.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				BroadcastService.getInstance().stop();
 			}
 		});
 	}

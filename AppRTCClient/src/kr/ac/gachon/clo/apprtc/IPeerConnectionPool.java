@@ -6,5 +6,7 @@ public interface IPeerConnectionPool extends IQueue<PeerConnection> {
 
 	public void accumulate(PeerConnection connection);
 
-	public void flush();
+	public void remove(PeerConnection connection);
+
+	public void release();
 }

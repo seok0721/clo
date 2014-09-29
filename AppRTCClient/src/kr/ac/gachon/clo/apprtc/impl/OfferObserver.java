@@ -41,7 +41,6 @@ public class OfferObserver implements SdpObserver {
 		clearRetry();
 
 		PeerConnectionPool.getInstance().enqueue(connection);
-		SignalingService.getInstance().push(connection.getLocalDescription());
 	}
 
 	@Override

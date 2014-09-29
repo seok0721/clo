@@ -4,7 +4,8 @@ import kr.ac.gachon.clo.apprtc.IBroadcastService;
 
 public class BroadcastService implements IBroadcastService {
 
-	public static BroadcastService instance;
+	private static BroadcastService instance;
+	private static final String URL = "http://211.189.20.193:10080";
 
 	public static BroadcastService getInstance() {
 		if(instance == null) {
@@ -17,12 +18,14 @@ public class BroadcastService implements IBroadcastService {
 	@Override
 	public void start() {
 		PeerConnectionGenerator.getInstance().start();
-		// TODO To start signaling service.
+
+		SignalingService.getInstance().start(URL);
 	}
 
 	@Override
 	public void stop() {
 		PeerConnectionGenerator.getInstance().stop();
-		// TODO To stop signaling service.
+
+		SignalingService.getInstance().stop();
 	}
 }

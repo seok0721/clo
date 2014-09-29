@@ -38,16 +38,34 @@ public class PeerConnectionObserver implements Observer {
 	@Override
 	public void onSignalingChange(SignalingState signalingState) {
 		Log.i(TAG, String.format("onSignalingChange, %s", signalingState.name()));
+
+		if(signalingState == SignalingState.CLOSED) {
+			PeerConnectionPool.getInstance().remove(connection);
+		}
 	}
 
 	@Override
 	public void onIceGatheringChange(IceGatheringState iceGatheringState) {
 		Log.i(TAG, String.format("onIceGatheringChange, %s", iceGatheringState.name()));
+
+		if(iceGatheringState == IceGatheringState.COMPLETE) {
+			SignalingService.getInstance().push(connection.getLocalDescription());
+		}
 	}
 
 	@Override
 	public void onIceConnectionChange(IceConnectionState iceConnectionState) {
 		Log.i(TAG, String.format("onIceConnectionChange, %s", iceConnectionState.name()));
+
+		switch(iceConnectionState) {
+		case FAILED:
+		case DISCONNECTED:
+		case CLOSED:
+			PeerConnectionPool.getInstance().remove(connection);
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override

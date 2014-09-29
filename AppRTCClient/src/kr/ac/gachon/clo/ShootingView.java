@@ -14,11 +14,11 @@ public class ShootingView extends GLSurfaceView {
 
 	public ShootingView(Context context, AttributeSet attr) {
 		super(context, attr);
-
-		VideoRendererGui.setView(this);
 	}
 
-	public void setScreenSize(Activity activity) {
+	public void init(Activity activity) {
+		VideoRendererGui.setView(this);
+
 		activity.getWindowManager().getDefaultDisplay().getRealSize(screenSize);
 	}
 

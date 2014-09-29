@@ -9,6 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import kr.ac.gachon.clo.apprtc.ISignalingService;
 
@@ -164,6 +165,8 @@ public class SignalingService implements ISignalingService {
 	@Override
 	public void onConnect() {
 		Log.i(TAG, "onConnect");
+
+		PeerConnectionGenerator.getInstance().orderToCreateConnection();
 	}
 
 	@Override
@@ -186,5 +189,8 @@ public class SignalingService implements ISignalingService {
 		Log.i(TAG, String.format("onMessage, %s", data.toString()));
 	}
 
-	private SignalingService() {}
+	private SignalingService() {
+		lock = new ReentrantLock();
+		doNextJob = lock.newCondition();
+	}
 }

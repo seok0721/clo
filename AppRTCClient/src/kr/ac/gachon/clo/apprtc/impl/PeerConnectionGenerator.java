@@ -16,6 +16,7 @@ public class PeerConnectionGenerator implements IPeerConnectionGenerator, Runnab
 
 	private static final String TAG = PeerConnectionGenerator.class.getSimpleName();
 	private static PeerConnectionGenerator instance;
+	private DeviceCapturer deviceCapturer;
 	private PeerConnectionFactory factory;
 	private Thread background;
 	private Lock lock;
@@ -33,8 +34,8 @@ public class PeerConnectionGenerator implements IPeerConnectionGenerator, Runnab
 	@Override
 	public void start() {
 		synchronized(isRunning) {
-			if(isRunning && (background != null) && background.isAlive()) {
-				Log.i(TAG, "Background thread is already running.");
+			if(isRunning) {
+				Log.i(TAG, "Peer connection generator is already running.");
 				return;
 			}
 
@@ -48,47 +49,90 @@ public class PeerConnectionGenerator implements IPeerConnectionGenerator, Runnab
 	@Override
 	public void stop() {
 		synchronized(isRunning) {
+			if(!isRunning) {
+				Log.i(TAG, "Peer connection generator is already stopped.");
+				return;
+			}
+
 			isRunning = false;
+
+			signalToCreateConnection();
 		}
 	}
 
 	@Override
 	public void orderToCreateConnection() {
+		if(!isRunning) {
+			return;
+		}
+
+		signalToCreateConnection();
+	}
+
+	@Override
+	public void run() {
+		Log.i(TAG, "Generator start.");
+
+		lock.lock();
+
+		while(isRunning) {
+			try {
+				Log.i(TAG, "Wait for order to create connection...");
+
+				doToCreateConnection.await();
+			} catch(InterruptedException e) {
+				if(!isRunning) {
+					Log.i(TAG, "Stop generating connection...");
+					break;
+				}
+
+				Log.i(TAG, "Generating connection...");
+			}
+
+			createConnection();
+		}
+
+		PeerConnectionPool.getInstance().release();
+
+		lock.unlock();
+
+		Log.i(TAG, "Generator stop.");
+	}
+
+	private void createConnection() {
+		Log.i(TAG, "Create connection...");
+
+		PeerConnectionObserver observer = new PeerConnectionObserver();
+		PeerConnection connection = factory.createPeerConnection(new IceServers(), new SrtpMediaConstraints(), observer);
+		observer.setPeerConnection(connection);
+
+		Log.i(TAG, "Add stream...");
+
+		connection.addStream(deviceCapturer.getMediaStream(), new MediaConstraints());
+
+		Log.i(TAG, "Create offer...");
+
+		connection.createOffer(new OfferObserver(connection), new MediaConstraints());
+	}
+
+	private PeerConnectionGenerator() {
+		Log.i(TAG, "Create generator...");
+
+		factory = new PeerConnectionFactory();
+
+		deviceCapturer = DeviceCapturer.getInstance(factory);
+
+		lock = new ReentrantLock();
+		doToCreateConnection = lock.newCondition();
+
+		Log.i(TAG, "To create generator complete.");
+	}
+
+	private void signalToCreateConnection() {
 		lock.lock();
 
 		doToCreateConnection.signal();
 
 		lock.unlock();
-	}
-
-	@Override
-	public void run() {
-		while(isRunning) {
-			lock.lock();
-
-			try {
-				doToCreateConnection.await();
-			} catch(InterruptedException e) {
-				Log.i(TAG, "Generating connection...");
-			}
-
-			createConnection();
-
-			lock.unlock();
-		}
-	}
-
-	private void createConnection() {
-		PeerConnectionObserver observer = new PeerConnectionObserver();
-		PeerConnection connection = factory.createPeerConnection(new IceServers(), new SrtpMediaConstraints(), observer);
-		connection.addStream(DeviceCapturer.getInstance(factory).getMediaStream(), new MediaConstraints());
-		observer.setPeerConnection(connection);
-		connection.createOffer(new OfferObserver(connection), new MediaConstraints());
-	}
-
-	private PeerConnectionGenerator() {
-		factory = new PeerConnectionFactory();
-		lock = new ReentrantLock();
-		doToCreateConnection = lock.newCondition();
 	}
 }
