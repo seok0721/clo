@@ -1,0 +1,69 @@
+package kr.ac.gachon.clo.apprtc.impl;
+
+import org.webrtc.DataChannel;
+import org.webrtc.IceCandidate;
+import org.webrtc.MediaStream;
+import org.webrtc.PeerConnection;
+import org.webrtc.PeerConnection.IceConnectionState;
+import org.webrtc.PeerConnection.IceGatheringState;
+import org.webrtc.PeerConnection.Observer;
+import org.webrtc.PeerConnection.SignalingState;
+
+import android.util.Log;
+
+public class PeerConnectionObserver implements Observer {
+
+	private static final String TAG = PeerConnectionObserver.class.getSimpleName();
+	private PeerConnection connection;
+
+	public void setPeerConnection(PeerConnection connection) {
+		this.connection = connection;
+	}
+
+	@Override
+	public void onRenegotiationNeeded() {
+		Log.i(TAG, "onRenegotiationNeeded");
+	}
+
+	@Override
+	public void onAddStream(MediaStream mediaStream) {
+		Log.i(TAG, String.format("onAddStream, %s", mediaStream.toString()));
+	}
+
+	@Override
+	public void onRemoveStream(MediaStream mediaStream) {
+		Log.i(TAG, String.format("onRemoveStream, %s", mediaStream.toString()));
+	}
+
+	@Override
+	public void onSignalingChange(SignalingState signalingState) {
+		Log.i(TAG, String.format("onSignalingChange, %s", signalingState.name()));
+	}
+
+	@Override
+	public void onIceGatheringChange(IceGatheringState iceGatheringState) {
+		Log.i(TAG, String.format("onIceGatheringChange, %s", iceGatheringState.name()));
+	}
+
+	@Override
+	public void onIceConnectionChange(IceConnectionState iceConnectionState) {
+		Log.i(TAG, String.format("onIceConnectionChange, %s", iceConnectionState.name()));
+	}
+
+	@Override
+	public void onIceCandidate(IceCandidate candidate) {
+		Log.i(TAG, String.format("onIceCandidate, %s", candidate.sdp));
+
+		connection.addIceCandidate(candidate);
+	}
+
+	@Override
+	public void onError() {
+		Log.i(TAG, "onError");
+	}
+
+	@Override
+	public void onDataChannel(DataChannel dataChannel) {
+		Log.i(TAG, String.format("onDataChannel, %s", dataChannel.label()));
+	}
+}
