@@ -107,7 +107,7 @@ function socket_handler(socket) {
     socket.broadcast.to(socket.email).emit('offer', data);
 
     Log.i(TAG + ' offer_handler', 'offer, broadcaster: ' + socket.email);
-    Log.d(TAG + ' offer_handler', 'offer, sdp: ' + sdp);
+    // Log.d(TAG + ' offer_handler', 'offer, sdp: ' + sdp);
   }
 
   function answer_handler(data) {
@@ -118,7 +118,7 @@ function socket_handler(socket) {
       return;
     }
 
-    socket.broadcast.to(socekt.room).emit('answer', data);
+    socket.broadcast.to(sockt.room).emit('answer', data);
 
     Log.i(TAG + ' answer_handler', 'answer, viewer: ' + socket.room);
   }
