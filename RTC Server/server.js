@@ -99,10 +99,13 @@ function socket_handler(socket) {
 
     Log.i(TAG + ' offer_handler', 'before offer, broadcaster: ' + socket.email);
 
+    // FIXME Final Exam, uncomment this block.
+    /*
     if(!socket.email) { // Only broadcaster
       Log.e(TAG + ' offer_handler', 'Do not send offer except broadcaster.');
       return;
     }
+    */
 
     socket.broadcast.to(socket.email).emit('offer', data);
 
@@ -118,7 +121,7 @@ function socket_handler(socket) {
       return;
     }
 
-    socket.broadcast.to(sockt.room).emit('answer', data);
+    socket.broadcast.to(socket.room).emit('answer', data);
 
     Log.i(TAG + ' answer_handler', 'answer, viewer: ' + socket.room);
   }
