@@ -44,6 +44,33 @@ function read_broadcaster(email, pwd, callback) {
   */
 }
 
+function create_broadcaster(data, callback) {
+  client.query(' insert into TBL_BROADCASTER values'
+           + ' ( :EMAIL'
+           + ' , :PASSWD'
+           + ' , :NAME'
+           + ' , :IMG_TYPE'
+           + ' , :IMG_DATA )', data)
+  .on('result', function(ret) {
+    ret.on('error', function(err) {
+      callback(err);
+    }).on('end', function(meta) {
+      callback(null, meta);
+    });
+  });
+}
+
+create_broadcaster({
+  EMAIL: '',
+  PASSWD: '',
+  NAME: '',
+  IMG_TYPE: null,
+  IMG_DATA: null
+}, function(err, ret) {
+  console.log(err);
+  console.log(ret);
+});
+
 /*
  * Main Routine
  */

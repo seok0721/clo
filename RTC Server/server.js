@@ -1,7 +1,7 @@
 /*
  * Import Module
  */
-var io = require('socket.io').listen(10080);
+var io = require('socket.io').listen(3000);
 var inspect = require('util').inspect;
 var maria = require('./maria.js');
 var redis = require('./redis.js');
@@ -21,15 +21,56 @@ var TAG = 'server.js'
  * Static Function
  */
 function socket_handler(socket) {
-  socket.on('login', login_handler);
-  socket.on('logout', logout_handler);
-  socket.on('create', create_handler);
-  socket.on('offer', offer_handler);
-  socket.on('answer', answer_handler);
-  socket.on('destroy', destroy_handler);
-  socket.on('join', join_handler);
-  socket.on('withdraw', withdraw_handler);
-  socket.on('disconnect', disconnect_handler);
+  socket.on('gps', gps_handler);
+  socket.on('signup', signup_handler);
+  socket.on('login', login_handler); // 로그인
+  socket.on('logout', logout_handler); // 로그아웃
+  socket.on('create', create_handler); // 방 생성
+  socket.on('offer', offer_handler); // SDP 전송
+  socket.on('answer', answer_handler); // SDP 응답
+  socket.on('destroy', destroy_handler); // 방 제거
+  socket.on('join', join_handler); // 방 들어가기
+  socket.on('withdraw', withdraw_handler); // 방 나오기
+  socket.on('disconnect', disconnect_handler); // 서버 접속 종료
+
+  function gps_handler(data) {
+    socket.emit('gps', [
+      { email: 'seok0721@gmail.com', name: '이왕석의 방', address: '경기도 성남시 분당구' },
+      { email: 'chs@gmail.com', name: '최현석의 방', address: '경기도 성남시 수정구' },
+      { email: 'jungwoon@gmail.com', name: '박정운의 방', address: '서울시 동작구 사당동' }
+    ]);
+  }
+
+  function signup_handler(data) {
+    var email = data.email;
+    var pwd = data.pwd;
+
+    maria.read_broadcaster(email, pwd, function(err, data) {
+      if(err) {
+        Log.d(TAG + 'signup_handler', 'error.');
+        emit_failure('signup');
+      } else if(data) {
+        Log.d(TAG + 'signup_handler', 'email already exists.');
+        emit_failure('signup');
+      } else {
+        var json = {
+          EMAIL: data.EMAIL,
+          PWD: data.PWD,
+          NAME: data.NAME,
+          IMG_DATA: data.IMG_DATA
+        };
+
+        Log.d(TAG + 'signup_handler', inspect(json));
+        maria.create_broadcaster(json, function(err, ret) {
+          if(err) {
+            emit_success('signup');
+          } else {
+            emit_success('signup');
+          }
+        });
+      }
+    });
+  }
 
   function login_handler(data) {
     var email = data.email; // Broadcaster email.
