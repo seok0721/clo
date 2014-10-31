@@ -13,7 +13,7 @@ public class BroadcastService implements IBroadcastService {
 		}
 
 		return instance;
-	} 
+	}
 
 	@Override
 	public void start() {

@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">AppRTCClient</string>
     <string name="hello_world">Hello world!</string>
-
+    <string name="title_activity_join">회원가입</string>
+    <string name="title_activity_prepare">방송준비</string>
+    <string name="title_activity_on_air">방송중</string>
+    <string name="serverIP">211.189.20.193</string>
+    <string name="serverPort">10080</string>
+    <string name="title_activity_auth">로그인</string>
 </resources>

@@ -12,7 +12,7 @@ import org.webrtc.PeerConnectionFactory;
 
 import android.util.Log;
 
-public class PeerConnectionGenerator implements IPeerConnectionGenerator, Runnable {
+public class PeerConnectionGenerator implements IPeerConnectionGenerator {
 
 	private static final String TAG = PeerConnectionGenerator.class.getSimpleName();
 	private static PeerConnectionGenerator instance;
