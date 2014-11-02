@@ -24,7 +24,7 @@ public class ShootingView extends GLSurfaceView {
 
 	@Override
 	protected void onMeasure(int unusedX, int unusedY) {
-		setMeasuredDimension(screenSize.x, screenSize.y);
+		setMeasuredDimension(screenSize.x - 1, screenSize.y - 1);
 	}
 
 	@Override

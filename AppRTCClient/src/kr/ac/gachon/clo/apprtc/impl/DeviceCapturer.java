@@ -21,8 +21,12 @@ public class DeviceCapturer {
 	private static DeviceCapturer instance;
 	private PeerConnectionFactory factory;
 	private MediaStream mediaStream;
+	private VideoCapturer videoCapturer;
+	private VideoSource videoSource;
+	private AudioSource audioSource;
 	private VideoTrack videoTrack;
 	private AudioTrack audioTrack;
+	private int index = 0;
 
 	public static DeviceCapturer getInstance(PeerConnectionFactory factory) {
 		if(instance == null) {

@@ -5,6 +5,15 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import kr.ac.gachon.clo.apprtc.event.EventResult;
+import kr.ac.gachon.clo.apprtc.event.Worker;
+import kr.ac.gachon.clo.apprtc.impl.SignalingService;
+import kr.ac.gachon.clo.listener.OnAirButtonHandler;
+import kr.ac.gachon.clo.view.ReadyView;
+
+import org.json.JSONObject;
+
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
@@ -13,18 +22,20 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ReadyActivity extends FragmentActivity implements View.OnClickListener{
+public class ReadyActivity extends Activity implements Worker, ReadyView {
 
-	private TextView mAddress;
-	private EditText mTitle; //broadcast title
-	private TextView mName;
+	private static final String TAG = ReadyActivity.class.getSimpleName();
+	private static final String EVENT = "create";
+	private TextView txtAddress;
+	private TextView txtName;
+	private EditText edtTitle;
+	private Button btnOnAir;
 
 	String name;
 	double x,y;
@@ -32,86 +43,74 @@ public class ReadyActivity extends FragmentActivity implements View.OnClickListe
 	LocationManager lm;
 	boolean gps_enabled = false;
 	boolean network_enabled = false;
-	String completeAddress = "Cannot found Location";
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ready);
 
-		Button onAir = (Button)findViewById(R.id.btn_onair);
-		onAir.setOnClickListener(this);
+		btnOnAir = (Button)findViewById(R.id.btnOnAir);
+		btnOnAir.setOnClickListener(new OnAirButtonHandler(this));
 
-		mTitle = (EditText)findViewById(R.id.pro_title); //방송 제목을 받는 부분
-		mAddress = (TextView)findViewById(R.id.pro_location); //현재 위치를 받는 부분
-		mName = (TextView)findViewById(R.id.pro_name);
+		edtTitle = (EditText)findViewById(R.id.edtTitle);
+		txtAddress = (TextView)findViewById(R.id.txtLocation);
+		txtName = (TextView)findViewById(R.id.txtLoadName);
 
-		Intent intent = getIntent();
-		name = intent.getStringExtra("name");
-
-		mName.setText(name);
-
-		//=========================================================================================
-		// GPS와 Wifi기지국을 이용해 현재 위치를 가져오는 부분
-
-		/*
-        lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        if (!gps_enabled && !network_enabled) {  Context context = getApplicationContext();
-            int duration = Toast.LENGTH_SHORT;
-            Toast toast = Toast.makeText(context, "nothing is enabled", duration);
-            toast.show();
-        }
-
-        if (gps_enabled) {
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGps);
-        }
-
-        if (network_enabled) {
-            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNetwork);
-        }
-
-        timer=new Timer();
-        timer.schedule(new GetLastLocation(), 20000);
-		 */
+		SignalingService.getInstance().addWorker(this);
 	}
 
-	public void onClick(View view) {
-		Intent intent = new Intent(ReadyActivity.this, onAir.class);
-		intent.putExtra("title", mTitle.getText().toString());
-		intent.putExtra("name", name);
-		intent.putExtra("address", completeAddress);
-		startActivity(intent);
+	@Override
+	protected void onStart() {
+		super.onStart();
 
-		//Toast.makeText(prepareActivity.this, "Test Click", Toast.LENGTH_SHORT).show();
+		Intent intent = getIntent();
+		Bundle bundle = intent.getExtras();
+
+		txtName.setText(bundle.getString("name"));
+
+		/*
+		// GPS와 Wifi기지국을 이용해 현재 위치를 가져오는 부분
+		lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+		gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+		network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+		if (!gps_enabled && !network_enabled) {
+			Context context = getApplicationContext();
+			int duration = Toast.LENGTH_SHORT;
+			Toast toast = Toast.makeText(context, "nothing is enabled", duration);
+			toast.show();
+		}
+
+		if(gps_enabled) {
+			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGps);
+		}
+
+		if(network_enabled) {
+			lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNetwork);
+		}
+
+		timer = new Timer();
+		timer.schedule(new GetLastLocation(), 20000);
+		 */
 	}
 
 	// Geocoder를 이용해서 latitude와 longitude를 통해 주소를 얻는 부분
 	public String getAddress(double latitude, double longitude){
-		Geocoder geocoder;
-		List<Address> addresses;
-
 		try {
-			geocoder = new Geocoder(this, Locale.getDefault());
-			addresses = geocoder.getFromLocation(latitude, longitude, 1);
+			Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+			List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
 
 			String address = addresses.get(0).getAddressLine(0);
 			//String city = addresses.get(0).getAddressLine(1);
 			//String country = addresses.get(0).getAddressLine(2);
 
-			completeAddress = address;
+			return address;
 
-			return completeAddress;
+		} catch(Exception e) {}
 
-		}
-		catch(Exception e){
-
-		};
-
-		return completeAddress;
+		return "Cannot found Location";
 	}
 
 	// latitude를 구하고 longtitude를 구하기 위한 소스들
@@ -123,7 +122,7 @@ public class ReadyActivity extends FragmentActivity implements View.OnClickListe
 			lm.removeUpdates(this);
 			lm.removeUpdates(locationListenerNetwork);
 
-			mAddress.setText(getAddress(x,y)); //get Current Address used x,y
+			txtAddress.setText(getAddress(x,y)); //get Current Address used x,y
 
 			Context context = getApplicationContext();
 			int duration = Toast.LENGTH_LONG;
@@ -149,7 +148,7 @@ public class ReadyActivity extends FragmentActivity implements View.OnClickListe
 			lm.removeUpdates(this);
 			lm.removeUpdates(locationListenerGps);
 
-			mAddress.setText(getAddress(x,y)); //get Current Address used x,y
+			txtAddress.setText(getAddress(x,y)); //get Current Address used x,y
 
 			Context context = getApplicationContext();
 			int duration = Toast.LENGTH_SHORT;
@@ -168,6 +167,7 @@ public class ReadyActivity extends FragmentActivity implements View.OnClickListe
 	};
 
 	class GetLastLocation extends TimerTask {
+
 		@Override
 		public void run() {
 			lm.removeUpdates(locationListenerGps);
@@ -221,5 +221,62 @@ public class ReadyActivity extends FragmentActivity implements View.OnClickListe
 			Toast toast = Toast.makeText(context, "no last know avilable", duration);
 			toast.show();
 		}
+	}
+
+	@Override
+	public TextView getAddress() {
+		return txtAddress;
+	}
+
+	@Override
+	public TextView getName() {
+		return txtName;
+	}
+
+	@Override
+	public EditText getTitleName() {
+		return edtTitle;
+	}
+
+	@Override
+	public Button getOnAirButton() {
+		return btnOnAir;
+	}
+
+	@Override
+	public void onMessage(JSONObject data) {
+		String message;
+
+		try {
+			if(data.getInt("ret") == EventResult.FAILURE) {
+				throw new Exception();
+			}
+
+			Intent intent = new Intent(this, ShootingActivity.class);
+			intent.putExtra("title", getTitleName().getText().toString());
+			intent.putExtra("name", getName().getText().toString());
+			intent.putExtra("address", getAddress().getText().toString());
+			startActivity(intent);
+
+			message = "방송을 시작합니다.";
+		} catch(Exception e) {
+			Log.e(TAG, e.getMessage(), e);
+
+			message = "방을 만드는 도중 오류가 발생하였습니다.";
+		}
+
+		Log.i(TAG, message);
+
+		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public Activity getActivity() {
+		return this;
+	}
+
+	@Override
+	public String getEvent() {
+		return EVENT;
 	}
 }

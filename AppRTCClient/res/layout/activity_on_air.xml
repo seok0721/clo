@@ -61,7 +61,7 @@
                 android:background="@drawable/blank" />
 
             <ImageView
-                android:id="@+id/pro_img"
+                android:id="@+id/imgLoadThumbnail"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_gravity="center"

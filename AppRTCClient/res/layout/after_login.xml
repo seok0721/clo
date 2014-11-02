@@ -18,7 +18,7 @@
             android:layout_margin="10dp" />
 
         <ImageView
-            android:id="@+id/pro_img"
+            android:id="@+id/imgLoadThumbnail"
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:layout_gravity="center"
@@ -74,7 +74,7 @@
 
 
     <Button
-        android:id="@+id/btn_onair"
+        android:id="@+id/btnOnAir"
         android:layout_width="250dp"
         android:layout_height="55dp"
         android:text="On Air"

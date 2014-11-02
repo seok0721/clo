@@ -27,7 +27,7 @@ public class AnswerObserver implements SdpObserver {
 
 	@Override
 	public void onSetSuccess() {
-		Log.i(TAG, "onSetSuccess");
+		Log.i(TAG, "onSetSuccess, PC: " + connection);
 
 		PeerConnectionPool.getInstance().accumulate(connection);
 

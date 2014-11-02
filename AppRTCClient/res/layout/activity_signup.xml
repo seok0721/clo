@@ -11,6 +11,13 @@
         android:layout_height="wrap_content">
 
         <ImageView
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:background="@drawable/blank" />
+
+        <ImageView
             android:id="@+id/imgSignUpThumbnail"
             android:layout_width="100dp"
             android:layout_height="100dp"
