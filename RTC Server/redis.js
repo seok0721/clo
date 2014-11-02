@@ -52,7 +52,7 @@ function /* es */ exist_session(email, callback) {
     }
 
     Log.i(TAG + ' exist_session', inspect(data));
-    callback(null, data ? true : false);
+    callback(null, data);
   });
 }
 
