@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1354a5">
+
+    <FrameLayout
+        android:layout_marginTop="80dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:background="@drawable/blank"
+            android:layout_margin="10dp" />
+
+        <ImageView
+            android:id="@+id/imgLoadThumbnail"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:background="@drawable/jony" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/txtLoadName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:text="Jony Ive"
+        android:textColor="#fff"
+        android:textSize="11pt" />
+
+    <EditText
+        android:id="@+id/edtTitle"
+        android:layout_width="250dp"
+        android:layout_height="45dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/group_edit"
+        android:hint="Input Your Title"
+        android:padding="5dp"
+        android:inputType="text"
+        android:textSize="7pt" />
+
+    <LinearLayout
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="35dp">
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/location"/>
+
+        <TextView
+            android:id="@+id/txtLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="3dp"
+            android:text="Cannot found Location"
+            android:textColor="#fff"
+            android:textSize="7pt" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnOnAir"
+        android:layout_width="250dp"
+        android:layout_height="55dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/btn_signup"
+        android:text="On Air"
+        android:textColor="#fff"
+        android:textSize="10pt" />
+
+</LinearLayout>

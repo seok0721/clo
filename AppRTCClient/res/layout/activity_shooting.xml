@@ -1,0 +1,139 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="${relativePackage}.${activityClass}" >
+
+    <view
+        android:id="@+id/shootingView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        class="kr.ac.gachon.clo.ShootingView" />
+
+    <Button
+        android:id="@+id/btnStop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:text="Stop" />
+
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btnStop"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="24dp"
+        android:text="Start" />
+
+    <LinearLayout
+        android:id="@+id/pnlMenu"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:background="#FFFFFF"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/txt_user"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:gravity="center"
+            android:text="Jony Ive"
+            android:textColor="@android:color/white"
+            android:textSize="8pt" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp" >
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="center"
+                android:background="@drawable/blank" />
+
+            <ImageView
+                android:id="@+id/imgLoadThumbnail"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:background="@drawable/jony" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/txt_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:text="Jeff Bernet Concert"
+            android:textColor="@android:color/white"
+            android:textSize="7pt" />
+
+        <TextView
+            android:id="@+id/txt_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:text="Seoul Korea"
+            android:textColor="@android:color/white"
+            android:textSize="6pt" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/btn_comment"
+                android:layout_width="120dp"
+                android:layout_height="40dp"
+                android:background="#fff"
+                android:text="Comments"
+                android:textColor="#262626"
+                android:textSize="6pt" />
+
+            <Button
+                android:id="@+id/btn_info"
+                android:layout_width="120dp"
+                android:layout_height="40dp"
+                android:background="#e8e8e8"
+                android:text="Information"
+                android:textColor="#9b9b9b"
+                android:textSize="6pt" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/left_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            android:choiceMode="singleChoice"
+            android:divider="#9b9b9b"
+            android:dividerHeight="0.5dp"
+            android:headerDividersEnabled="true" />
+
+        <LinearLayout
+            android:id="@+id/left_info"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fff"
+            android:orientation="vertical"
+            android:visibility="gone" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Not yet" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

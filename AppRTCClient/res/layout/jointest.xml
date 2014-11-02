@@ -1,0 +1,68 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1354a5"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/edtSignUpEmail"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_marginTop="50dp"
+        android:padding="5dp"
+        android:layout_gravity="center_horizontal"
+        android:hint="Email"
+        android:textSize="7pt"
+        android:inputType="textEmailAddress"
+        android:background="@drawable/group_top"
+        />
+
+    <EditText
+        android:id="@+id/edtSignUpPassword"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:padding="5dp"
+        android:layout_gravity="center_horizontal"
+        android:hint="Password"
+        android:textSize="7pt"
+        android:inputType="textPassword"
+        android:background="@drawable/group_row"
+        />
+
+    <EditText
+        android:id="@+id/edtSignUpPasswordConfirm"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:padding="5dp"
+        android:layout_gravity="center_horizontal"
+        android:hint="Confirm Password"
+        android:textSize="7pt"
+        android:inputType="textPassword"
+        android:background="@drawable/group_row"
+        />
+
+    <EditText
+        android:id="@+id/edtSignUpName"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:padding="5dp"
+        android:layout_gravity="center_horizontal"
+        android:hint="Name"
+        android:textSize="7pt"
+        android:inputType="text"
+        android:background="@drawable/group_bottom"
+        />
+
+    <Button
+        android:id="@+id/btn_signin"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:text="Sign Up"
+        android:textColor="#fff"
+        android:textSize="10pt"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/btn_signup"/>
+
+</LinearLayout>

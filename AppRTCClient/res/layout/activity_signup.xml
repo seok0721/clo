@@ -1,0 +1,95 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1354a5"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_marginTop="60dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:background="@drawable/blank" />
+
+        <ImageView
+            android:id="@+id/imgSignUpThumbnail"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:background="@drawable/join_pic" />
+
+    </FrameLayout>
+
+    <EditText
+        android:id="@+id/edtSignUpEmail"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="50dp"
+        android:background="@drawable/group_top"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:padding="5dp"
+        android:textSize="7pt" />
+
+    <EditText
+        android:id="@+id/edtSignUpPassword"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/group_row"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:padding="5dp"
+        android:textSize="7pt" />
+
+    <EditText
+        android:id="@+id/edtSignUpPasswordConfirm"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/group_row"
+        android:hint="Confirm Password"
+        android:inputType="textPassword"
+        android:padding="5dp"
+        android:textSize="7pt" />
+
+    <EditText
+        android:id="@+id/edtSignUpName"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/group_bottom"
+        android:hint="Name"
+        android:inputType="text"
+        android:padding="5dp"
+        android:textSize="7pt" />
+
+    <TextView
+        android:id="@+id/join_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="input your information"
+        android:textSize="7pt"
+        android:textColor="#fff"
+        android:layout_margin="20dp"/>
+
+    <Button
+        android:id="@+id/btnSignUp"
+        android:layout_width="300dp"
+        android:layout_height="55dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/btn_signup"
+        android:text="Sign Up"
+        android:textColor="#fff"
+        android:textSize="10pt" />
+
+</LinearLayout>
