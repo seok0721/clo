@@ -3,11 +3,18 @@ var NODE_SERVER = 'http://211.189.20.193:10080';
 var ICE_SERVERS = {
   'iceServers' : [{
     'url': 'stun:stun.l.google.com:19302'
+  }]
+};
+/*
+var ICE_SERVERS = {
+  'iceServers' : [{
+    'url': 'stun:stun.l.google.com:19302'
   }, {
     'url': 'turn:clo@211.189.20.193',
     'credential': 'clo'
   }]
 };
+*/
 
 function spin(condition, after) {
   var lock = setInterval(critical, 500);
