@@ -1,7 +1,7 @@
 /*
  * Import Module
  */
-var io = require('socket.io').listen(3000);
+var io = require('socket.io').listen(10080);
 var inspect = require('util').inspect;
 var maria = require('./maria.js');
 var redis = require('./redis.js');
@@ -21,166 +21,187 @@ var TAG = 'server.js'
  * Static Function
  */
 function socket_handler(socket) {
-  socket.on('gps', gps_handler);
   socket.on('signup', signup_handler);
-  socket.on('login', login_handler); // 로그인
-  socket.on('logout', logout_handler); // 로그아웃
-  socket.on('create', create_handler); // 방 생성
+  socket.on('signin', signin_handler); // 로그인
+  socket.on('signout', signout_handler); // 로그아웃
+  socket.on('create', create_channel_handler); // 방 생성
   socket.on('offer', offer_handler); // SDP 전송
   socket.on('answer', answer_handler); // SDP 응답
   socket.on('destroy', destroy_handler); // 방 제거
-  socket.on('join', join_handler); // 방 들어가기
-  socket.on('withdraw', withdraw_handler); // 방 나오기
+  socket.on('join', join_channel_handler); // 방 들어가기
+  socket.on('withdraw', withdraw_channel_handler); // 방 나오기
   socket.on('disconnect', disconnect_handler); // 서버 접속 종료
-
-  function gps_handler(data) {
-    socket.emit('gps', [
-      { email: 'seok0721@gmail.com', name: '이왕석의 방', address: '경기도 성남시 분당구' },
-      { email: 'chs@gmail.com', name: '최현석의 방', address: '경기도 성남시 수정구' },
-      { email: 'jungwoon@gmail.com', name: '박정운의 방', address: '서울시 동작구 사당동' }
-    ]);
-  }
 
   function signup_handler(data) {
     var email = data.email;
     var pwd = data.pwd;
+    var name = data.name;
+    var image = data.image;
 
-    maria.read_broadcaster(email, pwd, function(err, data) {
+    maria.exist_broadcaster(email, pwd, function(err, exist) {
       if(err) {
-        Log.d(TAG + 'signup_handler', 'error.');
+        Log.e(TAG + '.signup_handler', err);
         emit_failure('signup');
-      } else if(data) {
-        Log.d(TAG + 'signup_handler', 'email already exists.');
-        emit_failure('signup');
-      } else {
-        var json = {
-          EMAIL: data.EMAIL,
-          PWD: data.PWD,
-          NAME: data.NAME,
-          IMG_DATA: data.IMG_DATA
-        };
-
-        Log.d(TAG + 'signup_handler', inspect(json));
-        maria.create_broadcaster(json, function(err, ret) {
-          if(err) {
-            emit_success('signup');
-          } else {
-            emit_success('signup');
-          }
-        });
-      }
-    });
-  }
-
-  function login_handler(data) {
-    var email = data.email; // Broadcaster email.
-    var pwd = data.pwd; // Broadcaster md5 hash upper case string password.
-
-    Log.d(TAG + 'login_handler', 'before login, data: ' + inspect(data));
-
-    redis.exist_session(email, function(err, exist) {
-      if(err || exist) {
-        Log.i(TAG + 'login_handler', 'login failure, data: ' + inspect(data));
-        emit_failure('login');
         return;
       }
 
-      maria.read_broadcaster(email, pwd, function(err, meta) {
-        if(err || meta.numRows == 0) {
-          Log.i(TAG + 'login_handler', 'login failure, data: ' + inspect(data));
-          emit_failure('login');
-          return;
+      if(exist) {
+        Log.i(TAG + '.signup_handler', 'Broadcaster\' info already exists.');
+        emit_failure('signup');
+        return;
+      }
+
+      maria.create_broadcaster(data, function(err, ret) {
+        if(err) {
+          Log.e(TAG + '.signup_handler', err);
+          emit_failure('signup');
+        } else {
+          Log.i(TAG + '.signup_handler', ret);
+          emit_success('signup');
         }
-
-        socket.email = email;
-        redis.create_session(email);
-        emit_success('login');
-
-        Log.i(TAG + 'login_handler', 'login success, data: ' + inspect(data));
       });
     });
   }
 
-  function logout_handler(data) {
-    Log.i(TAG + 'logout_handler', inspect(data));
+  function signin_handler(data) {
+    var email = data.email; // Broadcaster email.
+    var pwd = data.pwd; // Broadcaster md5 hash upper case string password.
+
+    redis.exist_session(email, function(err, exist) {
+      if(err) {
+        Log.e(TAG + '.signin_handler', err);
+        emit_failure('signin');
+        return;
+      }
+
+      if(exist) {
+        Log.i(TAG + '.signin_handler', 'Session already exists.');
+        emit_failure('signin');
+        return;
+      }
+
+      maria.read_broadcaster(email, pwd, function(err, data) {
+        var email = data.email;
+        var pwd   = data.pwd;
+        var name  = data.name;
+        var img   = data.img;
+
+        if(err) {
+          Log.e(TAG + '.signin_handler', err);
+          emit_failure('signin');
+          return;
+        }
+
+        if(!data) {
+          Log.i(TAG, 'Broadcaster info not exists.');
+          emit_failure('signin');
+          return;
+        }
+
+        Log.i(TAG, 'Sign in success, email: ' + data.email);
+
+        socket.email = email;
+        socket.name  = name;
+        socket.img   = img;
+
+        redis.create_session(socket.email);
+
+        socket.emit('signin', {
+          'ret':   SUCCESS,
+          'email': socket.email,
+          'name':  socket.name,
+          'img':   socket.img
+        });
+      });
+    });
+  }
+
+  function signout_handler(data) {
+    Log.i(TAG + 'signout_handler', inspect(data));
 
     redis.destroy_session(socket.email);
     socket.email = null;
   }
 
-  function create_handler(data) {
+  function create_channel_handler(data) {
+    var title = data.title;
+
+    Log.i(TAG + '.create_channel_handler', socket.email);
+
     if(!socket.email) {
-      Log.i(TAG + ' create_handler', inspect(data));
+      Log.i(TAG + '.create_channel_handler', '로그인 후 사용하세요.');
       emit_failure('create');
       return;
     }
 
     if(socket.title) {
-      Log.i(TAG + ' create_handler', 'room is already created.');
+      Log.i(TAG + '.create_channel_handler', '이미 방송중입니다.');
+      Log.i(TAG + '.create_channel_handler', '계정: ' + socket.email);
+      Log.i(TAG + '.create_channel_handler', '제목: ' + socket.title);
       return;
     }
 
-    redis.create_room(socket.email, data.title, function(err) {
+    redis.create_channel(socket.email, title, function(err) {
       if(err) {
-        Log.e(TAG + ' create_handler', err);
+        Log.e(TAG + '.create_channel_handler', err);
         emit_failure('create');
         return;
       }
 
+      socket.title = title;
       socket.join(socket.email);
-      socket.title = data.title;
-      emit_success('create');
 
-      Log.i(TAG + ' create_handler', 'to create room success.');
+      Log.i(TAG + '.create_channel_handler', '채널을 성공적으로 만들었습니다.');
+      Log.i(TAG + '.create_channel_handler', '계정: ' + socket.email);
+      Log.i(TAG + '.create_channel_handler', '제목: ' + socket.title);
+
+      emit_success('create');
     });
   }
 
   function offer_handler(data) {
     var sdp = data.sdp;
 
-    Log.i(TAG + ' offer_handler', 'before offer, broadcaster: ' + socket.email);
+    Log.i(TAG + '.offer_handler', 'before offer, broadcaster: ' + socket.email);
 
-    // FIXME Final Exam, uncomment this block.
-    /*
     if(!socket.email) { // Only broadcaster
-      Log.e(TAG + ' offer_handler', 'Do not send offer except broadcaster.');
+      Log.e(TAG + '.offer_handler', 'Do not send offer except broadcaster.');
       return;
     }
-    */
 
     socket.broadcast.to(socket.email).emit('offer', data);
 
-    Log.i(TAG + ' offer_handler', 'offer, broadcaster: ' + socket.email);
-    // Log.d(TAG + ' offer_handler', 'offer, sdp: ' + sdp);
+    Log.i(TAG + '.offer_handler', 'offer, broadcaster: ' + socket.email);
+    // Log.d(TAG + '.offer_handler', 'offer, sdp: ' + sdp);
   }
 
   function answer_handler(data) {
     var sdp = data.sdp;
 
     if(socket.email) { // Only viewer
-      Log.e(TAG + ' answer_handler', 'Can not send answer except viewer.');
+      Log.e(TAG + '.answer_handler', 'Can not send answer except to viewer.');
       return;
     }
 
     socket.broadcast.to(socket.room).emit('answer', data);
 
-    Log.i(TAG + ' answer_handler', 'answer, viewer: ' + socket.room);
+    Log.i(TAG + '.answer_handler', 'answer, viewer: ' + socket.room);
   }
 
   function destroy_handler(data) {
     if(!socket.email) {
-      Log.e(TAG + ' destroy_handler', 'Can not destroy room except broadcaster.');
+      Log.e(TAG + '.destroy_handler', 'Can not destroy room except broadcaster.');
       return;
     }
 
     if(!socket.title) {
-      Log.e(TAG + ' destroy_handler', 'Can not destroy non exist room.');
+      Log.e(TAG + '.destroy_handler', 'Can not destroy non exist room.');
       return;
     }
 
     redis.destroy_room(socket.email);
 
-    Log.i(TAG + ' destory_handler', 'destroy, broadcaster: ' + socket.email + ', title: ' + socket.title);
+    Log.i(TAG + '.destory_handler', 'destroy, broadcaster: ' + socket.email + ', title: ' + socket.title);
 
     socket.leave(socket.email);
     socket.title = null;
@@ -188,30 +209,37 @@ function socket_handler(socket) {
     socket.broadcast.emit('destroy');
   }
 
-  function join_handler(data) {
-    var room = data.room;
+  function join_channel_handler(data) {
+    var email = data.email;
 
-    redis.exist_room(room, function(err, exist) {
-      if(err || !exist) {
-        
+    redis.exist_channel(email, function(err, exist) {
+      if(err) {
+        Log.e(TAG + '.exist_channel', err);
         emit_failure('join');
         return;
       }
 
-      socket.room = room;
-      socket.join(room);
-      socket.broadcast.to(room).emit('join', data);
+      if(!exist) {
+        Log.i(TAG + '.exist_channel', '채널이 없습니다.');
+        emit_failure('join');
+        return;
+      }
 
-      Log.i(TAG + ' join_handler', 'room: ' + JSON.stringify(data));
+      socket.channel = email;
+      socket.join(socket.channel);
+      socket.broadcast.to(socket.channel).emit('join');
+
+      Log.i(TAG + '.join_channel_handler', '채널에 접속하였습니다.');
+      Log.i(TAG + '.join_channel_handler', '채널: ' + socket.channel);
     });  
   }
 
-  function withdraw_handler(data) {
+  function withdraw_channel_handler(data) {
     if(!socket.room) {
       return;
     }
 
-    Log.i(TAG + ' withdraw_handler', 'withdraw, room: ' + socket.room);
+    Log.i(TAG + '.withdraw_channel_handler', 'withdraw, room: ' + socket.room);
 
     socket.broadcast.to(socket.room).emit('withdraw');
     socket.leave(socket.room);
@@ -219,10 +247,10 @@ function socket_handler(socket) {
   }
 
   function disconnect_handler() {
-    Log.i(TAG + ' disconnect_handler', 'disconnect');
+    Log.i(TAG + '.disconnect_handler', 'disconnect');
 
     if(socket.email) {
-      Log.i(TAG + ' disconnect_handler', 'destroy session');
+      Log.i(TAG + '.disconnect_handler', 'destroy session');
       redis.destroy_session(socket.email);
       socket.broadcast.to(socket.email).emit('destroy');
     }

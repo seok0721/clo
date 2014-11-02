@@ -1,6 +1,7 @@
 /*
- * Global Variables
+ * Import Module
  */
+var Log = require('./logger.js');
 var inspect = require('util').inspect;
 var client = new (require('mariasql'));
 var config = {
@@ -11,65 +12,74 @@ var config = {
 };
 
 /*
+ * Static Constant
+ */
+var SUCCESS = 0;
+var FAILURE = 1;
+var TAG = 'maria.js'
+
+/*
  * Global Function
  */
 function log(message) {
   console.log('Maria: ' + message);
 }
 
-function read_broadcaster(email, pwd, callback) {
-  client
-  .query(' SELECT *' +
-         '   FROM TBL_BROADCASTER' +
-         '  WHERE EMAIL  = :email' +
-         '    AND PASSWD = :pwd', {
+function exist_broadcaster(email, pwd, callback) {
+  client.query('SELECT 1 FROM TBL_BROADCASTER WHERE EMAIL = :email AND PASSWD = :pwd', {
     'email': email,
     'pwd': pwd
-  })
-  .on('result', function(result) {
-    result
-    .on('error', function(err) {
-      callback(err);
-    })
-    .on('end', function(meta) {
-      callback(null, meta);
-    });
-  });
-  /*
-  .on('end', function() {
-    log('Query end.');
-
-    callback(null, null, 'End of query.');
-  });
-  */
-}
-
-function create_broadcaster(data, callback) {
-  client.query(' insert into TBL_BROADCASTER values'
-           + ' ( :EMAIL'
-           + ' , :PASSWD'
-           + ' , :NAME'
-           + ' , :IMG_TYPE'
-           + ' , :IMG_DATA )', data)
-  .on('result', function(ret) {
+  }).on('result', function(ret) {
     ret.on('error', function(err) {
       callback(err);
     }).on('end', function(meta) {
-      callback(null, meta);
+      callback(null, ((meta.numRows == 1) ? true : false));
     });
   });
 }
 
-create_broadcaster({
-  EMAIL: '',
-  PASSWD: '',
-  NAME: '',
-  IMG_TYPE: null,
-  IMG_DATA: null
-}, function(err, ret) {
-  console.log(err);
-  console.log(ret);
-});
+function read_broadcaster(email, pwd, callback) {
+  client.query(' SELECT MAX(EMAIL)    email'
+             + '      , MAX(PASSWD)   pwd'
+             + '      , MAX(NAME)     name'
+             + '      , MAX(IMG_DATA) img'
+             + '   FROM TBL_BROADCASTER'
+             + '  WHERE EMAIL  = :email'
+             + '    AND PASSWD = :pwd', {
+    'email': email,
+    'pwd': pwd
+  }).on('result', function(ret) {
+    ret.on('error', function(err) {
+      Log.e(TAG + '.read_broadcaster', err);
+      callback(err);
+    }).on('row', function(data) {
+      Log.i(TAG + '.read_broadcaster', data.email + ',' + data.pwd + ',' + data.name);
+      callback(null, data.email ? data : null);
+    });
+  });
+}
+
+function create_broadcaster(data, callback) {
+  var email = data.email;
+  var pwd   = data.pwd;
+  var name  = data.name;
+  var img   = data.img;
+
+  Log.d(TAG + '.create_broadcaster', inspect(data));
+
+  client.query('INSERT INTO TBL_BROADCASTER VALUES ( :email, :pwd , :name, :image )', {
+    'email': email,
+    'pwd':   pwd,
+    'name':  name,
+    'img':   img
+  }).on('result', function(ret) {
+    ret.on('error', function(err) {
+      callback(err);
+    }).on('end', function(meta) {
+      callback(null, (meta.numRows == 1) ? true : false);
+    });
+  });
+}
 
 /*
  * Main Routine
@@ -90,5 +100,6 @@ client.connect(config);
 /*
  * Export Symbol
  */
+module.exports.exist_broadcaster = exist_broadcaster;
 module.exports.read_broadcaster = read_broadcaster;
-
+module.exports.create_broadcaster = create_broadcaster;

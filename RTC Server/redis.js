@@ -22,22 +22,26 @@ redis.on('ready', function() {
   redis.flushall();
 });
 
-function /* er */ exist_room(room, callback) {
-  redis.hget('broadcaster', room, function(err, data) {
+function /* er */ exist_channel(email, callback) {
+  redis.hget('channel', email, function(err, data) {
+    Log.i(TAG + '.exist_channel', data);
+    Log.i(TAG + '.exist_channel', inspect(data));
+
     if(err) {
-      Log.e(TAG + ' exist_room', err);
+      Log.e(TAG + '.exist_channel', err);
       callback(err);
       return;
     }
 
     if(!data) {
-      Log.i(TAG + ' exist_room', 'Room not exists.');
+      Log.i(TAG + '.exist_channel', '채널이 없습니다.');
       callback(null, false);
       return;
     }
 
-    data = JSON.parse(data);
-    Log.i(TAG + ' exist_room', JSON.stringify(data));
+    var data = JSON.parse(data);
+
+    Log.i(TAG + '.exist_channel', JSON.stringify(data));
     callback(null, data.title ? true : false);
   });
 }
@@ -46,13 +50,15 @@ function /* er */ exist_room(room, callback) {
 function /* es */ exist_session(email, callback) {
   redis.hget('broadcaster', email, function(err, data) {
     if(err) {
-      Log.e(TAG + ' exist_session', err);
+      Log.e(TAG + '.exist_session', err);
       callback(err);
       return;
     }
 
-    Log.i(TAG + ' exist_session', inspect(data));
-    callback(null, data);
+    var exist = (data ? true : false);
+
+    Log.i(TAG + '.exist_session', exist);
+    callback(null, exist);
   });
 }
 
@@ -77,12 +83,12 @@ function /* es */ exist_session(email, callback) {
 function es_list_length_callback(len, callbeck) {
   redis.lrange('broadcaster', 0, len, function(err, list) {
     if(err) {
-      Log.e(TAG + ' es_list_length_callback', err);
+      Log.e(TAG + '.es_list_length_callback', err);
       callback(err);
       return;
     }
 
-    Log.i(TAG + ' es_list_length_callback', inspect(list));
+    Log.i(TAG + '.es_list_length_callback', inspect(list));
     es_list_range_callback(list, callback);
   });
 }
@@ -90,13 +96,13 @@ function es_list_length_callback(len, callbeck) {
 function es_list_range_callback(list, callback) {
   for(i = 0; i < len; i++) {
     if(JSON.parse(ret[i]).email == email) {
-      Log.i(TAG + ' es_list_range_callback', true);
+      Log.i(TAG + '.es_list_range_callback', true);
       callback(null, true);
       return;
     }
   }
 
-  Log.i(TAG + ' es_list_range_callback', false);
+  Log.i(TAG + '.es_list_range_callback', false);
   callback(null, false);
 }
 // END exist_session
@@ -106,20 +112,29 @@ function /* cs */ create_session(email) {
   redis.hset('broadcaster', email, JSON.stringify({}));
 }
 
-function /* cr */ create_room(email, title, callback) {
-  redis.hget('broadcaster', email, function(err, ret) {
+function /* cr */ create_channel(email, title, callback) {
+  redis.hget('broadcaster', email, function(err, data) {
     if(err) {
-      Log.e(TAG + ' create_room', err);
+      Log.e(TAG + '.create_channel', err);
       callback(err);
       return;
     }
 
-    data = JSON.parse(ret);
-    data.title = title;
+    if(!data) {
+      Log.i(TAG + '.create_channel', '로그인 후 사용하세요.');
+      callback('Not logged in.');
+      return;
+    }
 
-    redis.hset('broadcaster', email, JSON.stringify(data));
+    // redis.hset('broadcaster', email, JSON.stringify(data));
+    redis.hset('channel', email, JSON.stringify({
+      'title': title
+    }));
 
-    Log.i(TAG + ' create_room', inspect(data));
+    Log.i(TAG + '.create_channel', '채널을 생성합니다.');
+    Log.i(TAG + '.create_channel', '계정: ' + email);
+    Log.i(TAG + '.create_channel', '제목: ' + title);
+
     callback(null);
   });
 }
@@ -127,12 +142,12 @@ function /* cr */ create_room(email, title, callback) {
 function /* dr */ destroy_room(email) {
   redis.hget('broadcaster', email, function(err, ret) {
     if(err) {
-      Log.e(TAG + ' create_room', err);
+      Log.e(TAG + '.create_channel', err);
       callback(err);
       return;
     }
 
-    Log.i(TAG + ' destroy_room', inspect(data));
+    Log.i(TAG + '.destroy_room', inspect(data));
     data = JSON.parse(ret);
     delete data.title;
     redis.hset('broadcaster', email, JSON.stringify(data));
@@ -155,7 +170,7 @@ function /* ds */ destroy_session(email) {
       return;
     }
 
-    Log.i(TAG + ' destroy_session', email);
+    Log.i(TAG + '.destroy_session', email);
   });
 }
 
@@ -182,8 +197,8 @@ function /* ds */ destroy_session(email) {
  */
 module.exports.exist_session = exist_session;
 module.exports.create_session = create_session;
-module.exports.exist_room = exist_room;
-module.exports.create_room = create_room;
+module.exports.exist_channel = exist_channel;
+module.exports.create_channel = create_channel;
 module.exports.destroy_room = destroy_room;
 module.exports.destroy_session = destroy_session;
 
