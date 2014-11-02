@@ -9,21 +9,29 @@
 
 ## Event Type
 
-- connect
+- connection
 - disconnect
 - login
 - logout
-- create
-- destroy
-- join
-- withdraw
+- create(room)
+- destroy(room)
+- join(room)
+- withdraw(room)
 - chat
-- session
+- offer (broadcaster)
+- answer (viewer,
+// - session
+// - start(broadcasting)
+// - stop(broadcasting)
 
-## Status Code
+## Status Code // FIXME
 
 - 1st: {2: success, 4: client error, 5: server error}
 - 2nd: {0: common, 1: signaling server, 2: maria db, 3: redis, 4: argument, 5: ?}
+
+## Broadcaster Receive Event
+
+- chat, join, withdraw, login
 
 ## System Architecture
 
