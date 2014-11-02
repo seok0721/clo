@@ -28,28 +28,39 @@ function spin(condition, after) {
 }
 
 $(function() {
-  var btnConnect = $('#btnConnect');
-  var btnWatch = $('#btnWatch');
-  var txtEmail = $('#txtEmail');
+  var btnWatch1 = $('#btnWatch1');
+  var btnWatch2 = $('#btnWatch2');
+  var txtChannel1 = $('#txtChannel1');
+  var txtChannel2 = $('#txtChannel2');
 
-  btnWatch.click(watchButtonClickListener);
+  btnWatch1.click(function(e) {
+    var channel = txtChannel1.val();
 
-  function watchButtonClickListener(e) {
-    var email = txtEmail.val();
-
-    if(email.length == 0) {
+    if(channel.length == 0) {
       alert('채널을 입력하세요.');
-      txtEmail.focus();
+      txtChannel1.focus();
       return;
     }
 
-    watch(email);
-  }
+    watch(channel, 1);
+  });
 
-  function watch(email) {
+  btnWatch2.click(function(e) {
+    var channel = txtChannel2.val();
+
+    if(channel.length == 0) {
+      alert('채널을 입력하세요.');
+      txtChannel1.focus();
+      return;
+    }
+
+    watch(channel, 2);
+  });
+
+  function watch(email, index) {
     var conn = new RTCPeerConnection(ICE_SERVERS);  
     var socket = io.connect(NODE_SERVER);
-    var vidRemote = $('#vidRemote')[0];
+    var vidRemote = $('#vidRemote' + index)[0];
 
     conn.onicecandidate = iceCandidateListener;
     conn.onaddstream = addStreamListener;
@@ -83,13 +94,15 @@ $(function() {
     function offer_handler(data) {
       var sdp = data.sdp;
 
-      console.log('receive offer');
+      // console.log('receive offer');
       // console.log(sdp);
 
       if(conn.remoteDescription) {
-        console.log('have remote description');
+        // console.log('have remote description');
         return;
       }
+
+      console.log('set remote description');
 
       conn.setRemoteDescription(new RTCSessionDescription({
         'type': 'offer',
