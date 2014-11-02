@@ -3,11 +3,18 @@ var NODE_SERVER = 'http://211.189.20.193:10080';
 var ICE_SERVERS = {
   'iceServers' : [{
     'url': 'stun:stun.l.google.com:19302'
+  }]
+};
+/*
+var ICE_SERVERS = {
+  'iceServers' : [{
+    'url': 'stun:stun.l.google.com:19302'
   }, {
     'url': 'turn:clo@211.189.20.193',
     'credential': 'clo'
   }]
 };
+*/
 
 function spin(condition, after) {
   var lock = setInterval(critical, 500);
@@ -28,31 +35,52 @@ function spin(condition, after) {
 }
 
 $(function() {
-  var container = [];
-  var video_container = $('#divScreen');
-  var btnConnect = $('#btnConnect');
-  var txtEmail = $('#txtEmail');
+  var btnWatch1 = $('#btnWatch1');
+  var btnWatch2 = $('#btnWatch2');
+  var txtChannel1 = $('#txtChannel1');
+  var txtChannel2 = $('#txtChannel2');
 
-  btnConnect.click(function() {
-    if(txtEmail.val().length == 0) {
-      alert('방송자 메일 주소를 입력하세요.');
-      return 0;
+  btnWatch1.click(function(e) {
+    var channel = txtChannel1.val();
+
+    if(channel.length == 0) {
+      alert('채널을 입력하세요.');
+      txtChannel1.focus();
+      return;
     }
 
-    var socket = io.connect(NODE_SERVER);
+    watch(channel, 1);
+  });
+
+  btnWatch2.click(function(e) {
+    var channel = txtChannel2.val();
+
+    if(channel.length == 0) {
+      alert('채널을 입력하세요.');
+      txtChannel1.focus();
+      return;
+    }
+
+    watch(channel, 2);
+  });
+
+  function watch(email, index) {
     var conn = new RTCPeerConnection(ICE_SERVERS);  
-    var video = $('<video id="vidRemote" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>');
+    var socket = io.connect(NODE_SERVER);
+    var vidRemote = $('#vidRemote' + index)[0];
 
-    conn.onicecandidate = gotIceCandidate;
-    conn.onaddstream = gotRemoteStream;
+    conn.onicecandidate = iceCandidateListener;
+    conn.onaddstream = addStreamListener;
 
-    function gotRemoteStream(e) {
-      console.log('스트림을 수신합니다.');
+    socket.on('connect', connect_handler);
+    socket.on('offer', offer_handler);
 
-      video.src = URL.createObjectURL(e.stream);
+    function addStreamListener(e) {
+      console.log(e.stream);
+      vidRemote.src = URL.createObjectURL(e.stream);
     }
 
-    function gotIceCandidate(e) {
+    function iceCandidateListener(e) {
       if(!e.candidate) {
         return;
       }
@@ -62,22 +90,26 @@ $(function() {
       conn.addIceCandidate(new RTCIceCandidate(e.candidate));
     }
 
-    socket.on('connect', connect_handler);
-    socket.on('offer', offer_handler);
-
     function connect_handler() {
-      console.log('접속되었습니다.');
+      console.log('connect, join channel:' + email);
+
+      socket.emit('join', {
+        'email': email
+      });
     }
 
     function offer_handler(data) {
       var sdp = data.sdp;
 
-      console.log('오퍼를 처리합니다.');
+      // console.log('receive offer');
+      // console.log(sdp);
 
       if(conn.remoteDescription) {
-        console.log('have remote description');
+        // console.log('have remote description');
         return;
       }
+
+      console.log('set remote description');
 
       conn.setRemoteDescription(new RTCSessionDescription({
         'type': 'offer',
@@ -113,6 +145,6 @@ $(function() {
         console.log(err);
       });
     }
-  });
+  }
 });
 
