@@ -28,31 +28,41 @@ function spin(condition, after) {
 }
 
 $(function() {
-  var container = [];
-  var video_container = $('#divScreen');
   var btnConnect = $('#btnConnect');
+  var btnWatch = $('#btnWatch');
   var txtEmail = $('#txtEmail');
 
-  btnConnect.click(function() {
-    if(txtEmail.val().length == 0) {
-      alert('방송자 메일 주소를 입력하세요.');
-      return 0;
+  btnWatch.click(watchButtonClickListener);
+
+  function watchButtonClickListener(e) {
+    var email = txtEmail.val();
+
+    if(email.length == 0) {
+      alert('채널을 입력하세요.');
+      txtEmail.focus();
+      return;
     }
 
-    var socket = io.connect(NODE_SERVER);
+    watch(email);
+  }
+
+  function watch(email) {
     var conn = new RTCPeerConnection(ICE_SERVERS);  
-    var video = $('<video id="vidRemote" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>');
+    var socket = io.connect(NODE_SERVER);
+    var vidRemote = $('#vidRemote')[0];
 
-    conn.onicecandidate = gotIceCandidate;
-    conn.onaddstream = gotRemoteStream;
+    conn.onicecandidate = iceCandidateListener;
+    conn.onaddstream = addStreamListener;
 
-    function gotRemoteStream(e) {
-      console.log('스트림을 수신합니다.');
+    socket.on('connect', connect_handler);
+    socket.on('offer', offer_handler);
 
-      video.src = URL.createObjectURL(e.stream);
+    function addStreamListener(e) {
+      console.log(e.stream);
+      vidRemote.src = URL.createObjectURL(e.stream);
     }
 
-    function gotIceCandidate(e) {
+    function iceCandidateListener(e) {
       if(!e.candidate) {
         return;
       }
@@ -62,17 +72,19 @@ $(function() {
       conn.addIceCandidate(new RTCIceCandidate(e.candidate));
     }
 
-    socket.on('connect', connect_handler);
-    socket.on('offer', offer_handler);
-
     function connect_handler() {
-      console.log('접속되었습니다.');
+      console.log('connect, join channel:' + email);
+
+      socket.emit('join', {
+        'email': email
+      });
     }
 
     function offer_handler(data) {
       var sdp = data.sdp;
 
-      console.log('오퍼를 처리합니다.');
+      console.log('receive offer');
+      // console.log(sdp);
 
       if(conn.remoteDescription) {
         console.log('have remote description');
@@ -113,6 +125,6 @@ $(function() {
         console.log(err);
       });
     }
-  });
+  }
 });
 

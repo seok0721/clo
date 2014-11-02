@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/css/bootstrap.min.css" />
     <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="/js/socket.io.min.js"></script>
-    <script type="text/javascript" src="/js/simple.js"></script>
+    <script type="text/javascript" src="/js/simple2.js"></script>
   </head>
   <body>
     <br />
@@ -27,6 +27,9 @@
                     <input id="txtEmail" type="text" class="form-control" placeholder="RoomId" />
                   </div>
                 </div>
+                <button id="btnWatch" type="button">
+                  Watch
+                </button>
                 <button id="btnConnect" type="button">
                   Connect
                 </button>
@@ -40,7 +43,7 @@
               <strong>Broadcaster Camera</strong>
             </div>
             <div id="divScreen" class="panel-body">
-              <!-- <video id="vidRemote" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video> -->
+              <video id="vidRemote" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>
             </div>
           </div>
         </div>
