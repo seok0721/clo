@@ -89,6 +89,7 @@ public final class R {
         public static final int camera_layout=0x7f030009;
         public static final int jointest=0x7f03000a;
         public static final int list_form=0x7f03000b;
+        public static final int shooting=0x7f03000c;
     }
     public static final class string {
         public static final int app_name=0x7f040000;

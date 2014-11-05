@@ -1,8 +1,8 @@
 package kr.ac.gachon.clo.listener;
 
-import kr.ac.gachon.clo.apprtc.event.Worker;
-import kr.ac.gachon.clo.apprtc.impl.AnswerObserver;
-import kr.ac.gachon.clo.apprtc.impl.PeerConnectionPool;
+import kr.ac.gachon.clo.PeerConnectionPool;
+import kr.ac.gachon.clo.event.Worker;
+import kr.ac.gachon.clo.observer.AnswerObserver;
 
 import org.json.JSONObject;
 import org.webrtc.PeerConnection;

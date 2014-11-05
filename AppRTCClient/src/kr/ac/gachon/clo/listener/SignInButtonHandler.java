@@ -1,7 +1,7 @@
 package kr.ac.gachon.clo.listener;
 
-import kr.ac.gachon.clo.SignInActivity;
-import kr.ac.gachon.clo.apprtc.impl.SignalingService;
+import kr.ac.gachon.clo.SocketService;
+import kr.ac.gachon.clo.activity.SignInActivity;
 import kr.ac.gachon.clo.utils.HashUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,7 +10,7 @@ import android.widget.Toast;
 public class SignInButtonHandler implements Runnable, OnClickListener {
 
 	private SignInActivity activity;
-	private SignalingService signalingService = SignalingService.getInstance();
+	private SocketService socketService = SocketService.getInstance();
 
 	public SignInButtonHandler(SignInActivity activity) {
 		this.activity = activity;
@@ -33,7 +33,7 @@ public class SignInButtonHandler implements Runnable, OnClickListener {
 
 		password = HashUtils.md5(password);
 
-		signalingService.signin(email, password);
+		socketService.signin(email, password);
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package kr.ac.gachon.clo.listener;
 
-import kr.ac.gachon.clo.ReadyActivity;
-import kr.ac.gachon.clo.apprtc.impl.SignalingService;
+import kr.ac.gachon.clo.SocketService;
+import kr.ac.gachon.clo.activity.ReadyActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
@@ -28,6 +28,6 @@ public class OnAirButtonHandler implements Runnable, OnClickListener {
 			return;
 		}
 
-		SignalingService.getInstance().create(title);
+		SocketService.getInstance().create(title);
 	}
 }

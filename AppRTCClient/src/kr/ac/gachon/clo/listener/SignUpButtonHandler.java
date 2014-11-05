@@ -2,8 +2,8 @@ package kr.ac.gachon.clo.listener;
 
 import java.io.ByteArrayOutputStream;
 
-import kr.ac.gachon.clo.SignUpActivity;
-import kr.ac.gachon.clo.apprtc.impl.SignalingService;
+import kr.ac.gachon.clo.SocketService;
+import kr.ac.gachon.clo.activity.SignUpActivity;
 import kr.ac.gachon.clo.utils.HashUtils;
 import android.graphics.Bitmap;
 import android.util.Base64;
@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 public class SignUpButtonHandler implements Runnable, OnClickListener {
 
-	private SignalingService signalingService = SignalingService.getInstance();
+	private SocketService socketService = SocketService.getInstance();
 	private SignUpActivity activity;
 
 	public SignUpButtonHandler(SignUpActivity activity) {
@@ -57,7 +57,7 @@ public class SignUpButtonHandler implements Runnable, OnClickListener {
 			return;
 		}
 
-		signalingService.signup(email, HashUtils.md5(password), name, (activity.getThumbnailBitmap() == null)
+		socketService.signup(email, HashUtils.md5(password), name, (activity.getThumbnailBitmap() == null)
 				? null : Base64.encodeToString(bitmapToByteArray(activity.getThumbnailBitmap()), 0));
 	}
 
