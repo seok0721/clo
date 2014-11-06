@@ -6,10 +6,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import kr.ac.gachon.clo.R;
-import kr.ac.gachon.clo.SocketService;
+import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.event.EventResult;
-import kr.ac.gachon.clo.event.Worker;
-import kr.ac.gachon.clo.listener.OnAirButtonHandler;
+import kr.ac.gachon.clo.handler.OnAirButtonHandler;
+import kr.ac.gachon.clo.service.SocketService;
 import kr.ac.gachon.clo.view.ReadyView;
 
 import org.json.JSONObject;
@@ -29,7 +29,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ReadyActivity extends Activity implements Worker, ReadyView {
+public class ReadyActivity extends Activity implements ActivityEventHandler, ReadyView {
 
 	private static final String TAG = ReadyActivity.class.getSimpleName();
 	private static final String EVENT = "create";
@@ -58,7 +58,7 @@ public class ReadyActivity extends Activity implements Worker, ReadyView {
 		txtAddress = (TextView)findViewById(R.id.txtLocation);
 		txtName = (TextView)findViewById(R.id.txtLoadName);
 
-		SocketService.getInstance().addWorker(this);
+		SocketService.getInstance().addEventHandler(this);
 	}
 
 	@Override

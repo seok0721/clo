@@ -1,7 +1,6 @@
 package kr.ac.gachon.clo.observer;
 
-import kr.ac.gachon.clo.PeerConnectionPool;
-import kr.ac.gachon.clo.listener.HandshakeHandler;
+import kr.ac.gachon.clo.handler.HandshakeHandler;
 
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
@@ -28,57 +27,40 @@ public class PeerConnectionObserver implements Observer {
 	@Override
 	public void onRenegotiationNeeded() {
 		Log.i(TAG, "onRenegotiationNeeded");
-
-		// connection.updateIce(new IceServers(), new SrtpMediaConstraints());
 	}
 
 	@Override
 	public void onAddStream(MediaStream mediaStream) {
-		Log.i(TAG, String.format("onAddStream, %s", mediaStream.toString()));
+		Log.i(TAG, "onAddStream");
 	}
 
 	@Override
 	public void onRemoveStream(MediaStream mediaStream) {
-		Log.i(TAG, String.format("onRemoveStream, %s", mediaStream.toString()));
+		Log.i(TAG, "onRemoveStream");
 	}
 
 	@Override
 	public void onSignalingChange(SignalingState signalingState) {
-		Log.i(TAG, String.format("onSignalingChange, %s", signalingState.name()));
-
-		if(signalingState == SignalingState.CLOSED) {
-			PeerConnectionPool.getInstance().remove(connection);
-		}
+		Log.i(TAG, "onSignalingChange");
 	}
 
 	@Override
 	public void onIceGatheringChange(IceGatheringState iceGatheringState) {
-		Log.i(TAG, String.format("onIceGatheringChange, %s", iceGatheringState.name()));
+		Log.i(TAG, "onIceGatheringChange");
 
 		if(iceGatheringState == IceGatheringState.COMPLETE) {
 			handler.handshake(connection.getLocalDescription().description);
-			// SocketService.getInstance().push(connection.getLocalDescription());
 		}
 	}
 
 	@Override
 	public void onIceConnectionChange(IceConnectionState iceConnectionState) {
-		Log.i(TAG, String.format("onIceConnectionChange, %s", iceConnectionState.name()));
-
-		switch(iceConnectionState) {
-		case FAILED:
-		case DISCONNECTED:
-		case CLOSED:
-			PeerConnectionPool.getInstance().remove(connection);
-			break;
-		default:
-			break;
-		}
+		Log.i(TAG, "onIceConnectionChange");
 	}
 
 	@Override
 	public void onIceCandidate(IceCandidate candidate) {
-		Log.i(TAG, String.format("onIceCandidate, %s", candidate.sdp));
+		Log.i(TAG, "onIceCandidate");
 
 		connection.addIceCandidate(candidate);
 	}
@@ -90,6 +72,6 @@ public class PeerConnectionObserver implements Observer {
 
 	@Override
 	public void onDataChannel(DataChannel dataChannel) {
-		Log.i(TAG, String.format("onDataChannel, %s", dataChannel.label()));
+		Log.i(TAG, "onDataChannel");
 	}
 }

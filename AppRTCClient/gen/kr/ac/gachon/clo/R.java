@@ -30,7 +30,8 @@ public final class R {
         public static final int logo=0x7f020010;
         public static final int rotate=0x7f020011;
         public static final int shutter=0x7f020012;
-        public static final int twitter_logo=0x7f020013;
+        public static final int television=0x7f020013;
+        public static final int twitter_logo=0x7f020014;
     }
     public static final class id {
         public static final int btnOnAir=0x7f06000f;
@@ -77,19 +78,20 @@ public final class R {
         public static final int user_location=0x7f060022;
     }
     public static final class layout {
-        public static final int activity_on_air=0x7f030000;
-        public static final int activity_ready=0x7f030001;
-        public static final int activity_shooting=0x7f030002;
-        public static final int activity_sidemenu=0x7f030003;
-        public static final int activity_signin=0x7f030004;
-        public static final int activity_signup=0x7f030005;
-        public static final int activity_start=0x7f030006;
-        public static final int after_login=0x7f030007;
-        public static final int camera_btn=0x7f030008;
-        public static final int camera_layout=0x7f030009;
-        public static final int jointest=0x7f03000a;
-        public static final int list_form=0x7f03000b;
-        public static final int shooting=0x7f03000c;
+        public static final int activity_front=0x7f030000;
+        public static final int activity_on_air=0x7f030001;
+        public static final int activity_ready=0x7f030002;
+        public static final int activity_shooting=0x7f030003;
+        public static final int activity_sidemenu=0x7f030004;
+        public static final int activity_signin=0x7f030005;
+        public static final int activity_signup=0x7f030006;
+        public static final int activity_start=0x7f030007;
+        public static final int after_login=0x7f030008;
+        public static final int camera_btn=0x7f030009;
+        public static final int camera_layout=0x7f03000a;
+        public static final int jointest=0x7f03000b;
+        public static final int list_form=0x7f03000c;
+        public static final int shooting=0x7f03000d;
     }
     public static final class string {
         public static final int app_name=0x7f040000;

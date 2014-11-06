@@ -16,5 +16,5 @@ public interface SignUpView {
 	EditText getConfirmPassword();
 	EditText getName();
 
-	ImageView getThumbnail();
+	ImageView getThumbnailImage();
 }

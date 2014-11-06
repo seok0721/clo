@@ -1,14 +1,13 @@
 package kr.ac.gachon.clo.activity;
 
 import kr.ac.gachon.clo.R;
-import kr.ac.gachon.clo.SocketService;
+import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.event.EventResult;
-import kr.ac.gachon.clo.event.Worker;
-import kr.ac.gachon.clo.listener.SignUpButtonHandler;
-import kr.ac.gachon.clo.listener.ThumbnailClickHandler;
+import kr.ac.gachon.clo.handler.SignUpButtonHandler;
+import kr.ac.gachon.clo.handler.ThumbnailClickHandler;
+import kr.ac.gachon.clo.service.SocketService;
 import kr.ac.gachon.clo.view.SignUpView;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -23,20 +22,19 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class SignUpActivity extends Activity implements SignUpView, Worker {
+public class SignUpActivity extends Activity implements SignUpView, ActivityEventHandler {
 
 	private static final String TAG = SignUpActivity.class.getSimpleName();
 	private static final String EVENT = "signup";
-	private SocketService socketService = SocketService.getInstance();
 	private ImageView imgThumbnail;
-	private Bitmap thumbnail;
+	private Bitmap bitThumbnail;
 	private EditText edtEmail;
 	private EditText edtPassword;
 	private EditText edtConfirmPassword;
@@ -59,27 +57,29 @@ public class SignUpActivity extends Activity implements SignUpView, Worker {
 		edtConfirmPassword = (EditText)findViewById(R.id.edtSignUpPasswordConfirm);
 		edtName = (EditText)findViewById(R.id.edtSignUpName);
 
-		socketService.addWorker(this);
+		SocketService.getInstance().addEventHandler(this);
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		if (requestCode == ThumbnailClickHandler.REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-			Uri selectedImage = data.getData();
-			String[] filePathColumn = { MediaStore.Images.Media.DATA };
-
-			Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
-			cursor.moveToFirst();
-			int thumbnailIndex = cursor.getColumnIndex(filePathColumn[0]);
-			String thumbnailPath = cursor.getString(thumbnailIndex);
-			cursor.close();
-
-			thumbnail = getScaledBitmap(thumbnailPath, 300, 300);
-
-			imgThumbnail.setImageBitmap(getCircularBitmap(thumbnail));
+		if(requestCode != ThumbnailClickHandler.REQUEST_CODE || resultCode != RESULT_OK || data == null) {
+			return;
 		}
+
+		Uri selectedImage = data.getData();
+		String[] filePathColumn = { Media.DATA };
+
+		Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+		cursor.moveToFirst();
+
+		int thumbnailIndex = cursor.getColumnIndex(filePathColumn[0]);
+		String thumbnailPath = cursor.getString(thumbnailIndex);
+		cursor.close();
+
+		bitThumbnail = getScaledBitmap(thumbnailPath, 300, 300);
+		imgThumbnail.setImageBitmap(getCircularBitmap(bitThumbnail));
 	}
 
 	@Override
@@ -88,11 +88,11 @@ public class SignUpActivity extends Activity implements SignUpView, Worker {
 
 		try {
 			ret = data.getInt("ret");
-		} catch(JSONException e) {}
+		} catch(Exception e) {}
 
-		String message = (ret == EventResult.SUCCESS)
-				? "회원 가입이 정상적으로 완료되었습니다." : "회원 가입에 실패하였습니다.";
+		String message = (ret == EventResult.SUCCESS) ? "회원 가입이 정상적으로 완료되었습니다." : "회원 가입에 실패하였습니다.";
 		Log.i(TAG, message);
+
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 
 		finish();
@@ -123,31 +123,25 @@ public class SignUpActivity extends Activity implements SignUpView, Worker {
 
 		paint.setAntiAlias(true);
 		canvas.drawARGB(0, 0, 0, 0);
+
 		paint.setColor(color);
 		canvas.drawCircle(r, r, r, paint);
+
 		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
 		canvas.drawBitmap(bitmap, rect, rect, paint);
 
 		return output;
 	}
 
-	private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-		// Raw height and width of image
+	private int calculateInSampleSize(BitmapFactory.Options options, int requestWidth, int requestHeight) {
 		final int height = options.outHeight;
 		final int width = options.outWidth;
 		int inSampleSize = 1;
 
-		if (height > reqHeight || width > reqWidth) {
+		if (height > requestHeight || width > requestWidth) {
+			int heightRatio = Math.round((float) height / (float) requestHeight);
+			int widthRatio = Math.round((float) width / (float) requestWidth);
 
-			// Calculate ratios of height and width to requested height and
-			// width
-			final int heightRatio = Math.round((float) height / (float) reqHeight);
-			final int widthRatio = Math.round((float) width / (float) reqWidth);
-
-			// Choose the smallest ratio as inSampleSize value, this will
-			// guarantee
-			// a final image with both dimensions larger than or equal to the
-			// requested height and width.
 			inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
 		}
 
@@ -155,13 +149,13 @@ public class SignUpActivity extends Activity implements SignUpView, Worker {
 	}
 
 	@Override
-	public ImageView getThumbnail() {
+	public ImageView getThumbnailImage() {
 		return imgThumbnail;
 	}
 
 	@Override
 	public Bitmap getThumbnailBitmap() {
-		return thumbnail;
+		return bitThumbnail;
 	}
 
 	@Override

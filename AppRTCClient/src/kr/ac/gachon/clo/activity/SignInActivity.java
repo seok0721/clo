@@ -1,11 +1,12 @@
 package kr.ac.gachon.clo.activity;
 
+import kr.ac.gachon.clo.Global;
 import kr.ac.gachon.clo.R;
-import kr.ac.gachon.clo.SocketService;
+import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.event.EventResult;
-import kr.ac.gachon.clo.event.Worker;
-import kr.ac.gachon.clo.listener.SignInButtonHandler;
-import kr.ac.gachon.clo.listener.SignUpLableHandler;
+import kr.ac.gachon.clo.handler.SignInButtonHandler;
+import kr.ac.gachon.clo.handler.SignUpLableHandler;
+import kr.ac.gachon.clo.service.SocketService;
 import kr.ac.gachon.clo.view.SignInView;
 
 import org.json.JSONObject;
@@ -13,15 +14,14 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SignInActivity extends Activity implements SignInView, Worker {
+public class SignInActivity extends Activity implements SignInView, ActivityEventHandler {
 
-	private static final String TAG = SignInActivity.class.getSimpleName();
+	// private static final String TAG = SignInActivity.class.getSimpleName();
 	private static final String EVENT = "signin";
 	private Button btnSignIn;
 	private TextView txtSignUp;
@@ -42,35 +42,37 @@ public class SignInActivity extends Activity implements SignInView, Worker {
 		edtEmail = (EditText)findViewById(R.id.edtSignInEmail);
 		edtPassword = (EditText)findViewById(R.id.edtSignInPassword);
 
-		SocketService.getInstance().addWorker(this);
-		SocketService.getInstance().start();
+		SocketService.getInstance().addEventHandler(this);
 	}
 
 	@Override
 	public void onMessage(JSONObject data) {
-		String message;
+		int ret = EventResult.FAILURE;
+		String email = null;
+		String name = null;
+		String encodedPortrait = null;
 
 		try {
-			if(data.getInt("ret") == EventResult.FAILURE) {
-				throw new Exception();
-			}
+			ret = data.getInt("ret");
+			email = data.getString("email");
+			name = data.getString("name");
+			encodedPortrait = data.getString("img");
+		} catch(Exception e) {}
 
-			Intent intent = new Intent(this, ReadyActivity.class);
-			intent.putExtra("email", data.getString("email"));
-			intent.putExtra("name", data.getString("name"));
-			intent.putExtra("img", data.getString("img"));
-			startActivity(intent);
-
-			message = "로그인에 성공하였습니다.";
-		} catch(Exception e) {
-			Log.e(TAG, e.getMessage(), e);
-
-			message = "로그인에 실패하였습니다.";
+		if(ret == EventResult.FAILURE) {
+			Toast.makeText(this, "로그인에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+			return;
 		}
 
-		Log.i(TAG, message);
+		Intent intent = new Intent(this, ReadyActivity.class);
+		intent.putExtra("email", email);
+		intent.putExtra("name", name);
+		intent.putExtra("img", encodedPortrait);
+		startActivity(intent);
 
-		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+		Global.setChannel(email);
+
+		Toast.makeText(this, "로그인에 성공하였습니다.", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override

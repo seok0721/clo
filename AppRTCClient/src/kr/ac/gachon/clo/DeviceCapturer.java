@@ -9,13 +9,12 @@ import org.webrtc.MediaStream;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
-import org.webrtc.VideoRendererGui;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
 public class DeviceCapturer {
 
-	private static final String TAG = DeviceCapturer.class.getSimpleName();
+	// private static final String TAG = DeviceCapturer.class.getSimpleName();
 	private static final String DEVICE_NAME = "Camera 0, Facing back, Orientation 90";
 	private static final String LABEL = "CLO";
 	private static DeviceCapturer instance;
@@ -27,87 +26,44 @@ public class DeviceCapturer {
 	private VideoTrack videoTrack;
 	private AudioTrack audioTrack;
 	private VideoRenderer videoRenderer;
+	// private Callbacks videoRendererCallback;
+	private long serialNumber;
 
-	public static DeviceCapturer getInstance(PeerConnectionFactory factory) {
+	public static void setPeerConnectionFactory(PeerConnectionFactory factory) {
 		if(instance == null) {
-			instance = new DeviceCapturer(factory);
+			instance = new DeviceCapturer();
+		}
+
+		instance.factory = factory;
+	}
+
+	public static DeviceCapturer getInstance() {
+		if(instance == null) {
+			instance = new DeviceCapturer();
 		}
 
 		return instance;
 	}
 
 	public MediaStream getMediaStream() {
-//		long serialNumber = Calendar.getInstance().getTimeInMillis();
-
-//		MediaStream mediaStream = factory.createLocalMediaStream(String.format("%s%d", LABEL, serialNumber));
-//
-//		videoTrack = factory.createVideoTrack(String.format("%sv%d", LABEL, serialNumber), videoSource);
-//		videoTrack.addRenderer(videoRenderer);
-//		mediaStream.addTrack(videoTrack);
-//
-//		audioTrack = factory.createAudioTrack(String.format("%sa%d", LABEL, serialNumber), audioSource);
-//		mediaStream.addTrack(audioTrack);
-
 		return mediaStream;
 	}
 
-	private DeviceCapturer(PeerConnectionFactory factory) {
-		this.factory = factory;
+	private DeviceCapturer() {
+		serialNumber = Calendar.getInstance().getTimeInMillis();
 
-		videoCapturer = VideoCapturer.create(DEVICE_NAME);
-		videoSource = factory.createVideoSource(videoCapturer, new MediaConstraints());
-		videoRenderer = new VideoRenderer(VideoRendererGui.create(0, 0, 100, 100));
-		audioSource = factory.createAudioSource(new MediaConstraints());
-		long serialNumber = Calendar.getInstance().getTimeInMillis();
 		mediaStream = factory.createLocalMediaStream(String.format("%s%d", LABEL, serialNumber));
 
+		// videoRendererCallback = VideoRendererGui.create(0, 0, 100, 100);
+		// videoRenderer = new VideoRenderer(videoRendererCallback);
+		videoCapturer = VideoCapturer.create(DEVICE_NAME);
+		videoSource = factory.createVideoSource(videoCapturer, new MediaConstraints());
 		videoTrack = factory.createVideoTrack(String.format("%sv%d", LABEL, serialNumber), videoSource);
 		videoTrack.addRenderer(videoRenderer);
 		mediaStream.addTrack(videoTrack);
 
+		audioSource = factory.createAudioSource(new MediaConstraints());
 		audioTrack = factory.createAudioTrack(String.format("%sa%d", LABEL, serialNumber), audioSource);
 		mediaStream.addTrack(audioTrack);
-
 	}
-
-	/*
-	public MediaStream getMediaStream() {
-		return mediaStream;
-	}
-
-	private DeviceCapturer(PeerConnectionFactory factory) {
-		this.factory = factory;
-
-		Log.i(TAG, "Create media stream...");
-		mediaStream = factory.createLocalMediaStream(LABEL);
-
-		Log.i(TAG, "Initialize video track...");
-		initVideoTrack();
-
-		Log.i(TAG, "Initialize audio track...");
-		initAudioTrack();
-
-		Log.i(TAG, "Set audio & video...");
-		mediaStream.addTrack(videoTrack);
-		mediaStream.addTrack(audioTrack);
-	}
-
-	private void initVideoTrack() {
-		Log.i(TAG, "Create video capturer...");
-		VideoCapturer videoCapturer = VideoCapturer.create(DEVICE_NAME);
-
-		Log.i(TAG, "Create video source...");
-		VideoSource videoSource = factory.createVideoSource(videoCapturer, new MediaConstraints());
-
-		Log.i(TAG, "Create video track...");
-		videoTrack = factory.createVideoTrack(String.format("%sv0", LABEL), videoSource);
-		videoTrack.addRenderer(new VideoRenderer(VideoRendererGui.create(0, 0, 100, 100)));
-	}
-
-	private void initAudioTrack() {
-		AudioSource audioSource = factory.createAudioSource(new MediaConstraints());
-
-		audioTrack = factory.createAudioTrack(String.format("%sa0", LABEL), audioSource);
-	}
-	 */
 }

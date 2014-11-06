@@ -1,7 +1,5 @@
 package kr.ac.gachon.clo.observer;
 
-import kr.ac.gachon.clo.listener.HandshakeHandler;
-
 import org.webrtc.PeerConnection;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
@@ -12,18 +10,13 @@ public class LocalAnswerObserver implements SdpObserver {
 
 	private static final String TAG = LocalAnswerObserver.class.getSimpleName();
 	private PeerConnection connection;
-	private HandshakeHandler handler;
-	private SessionDescription session;
 
-	public LocalAnswerObserver(PeerConnection connection, HandshakeHandler handler) {
+	public LocalAnswerObserver(PeerConnection connection) {
 		this.connection = connection;
-		this.handler = handler;
 	}
 
 	@Override
 	public void onCreateSuccess(SessionDescription session) {
-		this.session = session;
-
 		connection.setLocalDescription(this, session);
 	}
 
