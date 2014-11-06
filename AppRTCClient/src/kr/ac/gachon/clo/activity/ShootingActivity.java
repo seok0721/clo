@@ -1,6 +1,7 @@
 package kr.ac.gachon.clo.activity;
 
 import kr.ac.gachon.clo.R;
+import kr.ac.gachon.clo.service.PeerConnectionGenerator;
 import kr.ac.gachon.clo.view.ShootingView;
 
 import org.webrtc.PeerConnectionFactory;
@@ -10,10 +11,8 @@ import android.os.Bundle;
 
 public class ShootingActivity extends Activity {
 
-	// private static final String TAG = ShootingActivity.class.getSimpleName();
+	private static final String TAG = ShootingActivity.class.getSimpleName();
 	private ShootingView shootingView;
-	// private Button btnStart;
-	// private Button btnStop;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -25,10 +24,13 @@ public class ShootingActivity extends Activity {
 		shootingView = (ShootingView)findViewById(R.id.shootingView);
 		shootingView.init(this);
 
-		// btnStart = (Button)findViewById(R.id.btnStart);
-		// btnStart.setOnClickListener(new BroadcastStartButtonHandler());
+		PeerConnectionGenerator.getInstance().start();
+	}
 
-		// btnStop = (Button)findViewById(R.id.btnStop);
-		// btnStop.setOnClickListener(new BroadcastStopButtonHandler());
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		PeerConnectionGenerator.getInstance().stop();
 	}
 }

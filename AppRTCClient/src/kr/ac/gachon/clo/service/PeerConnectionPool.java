@@ -11,7 +11,7 @@ import org.webrtc.PeerConnection;
 public class PeerConnectionPool {
 
 	private static PeerConnectionPool instance = new PeerConnectionPool();
-	private BlockingQueue<PeerConnection> waitQueue = new ArrayBlockingQueue<PeerConnection>(4);
+	private BlockingQueue<PeerConnection> waitQueue = new ArrayBlockingQueue<PeerConnection>(1);
 	private Queue<PeerConnection> runQueue = new LinkedList<PeerConnection>();
 
 	public static PeerConnectionPool getInstance() {

@@ -75,23 +75,23 @@ public class SocketCallback implements IOCallback {
 			final JSONObject data = (JSONObject)param[0];
 
 			for(final EventHandler eventHandler : eventHandlerList) {
-				if(!event.equals(eventHandler.getEvent())) {
-					continue;
-				}
-
-				if(!(eventHandler instanceof ActivityEventHandler)) {
-					eventHandler.onMessage(data);
-					continue;
-				}
-
-				Activity activity = ((ActivityEventHandler)eventHandler).getActivity();
-				activity.runOnUiThread(new Runnable() {
-
-					@Override
-					public void run() {
+				if(event.equals(eventHandler.getEvent())) {
+					if(!(eventHandler instanceof ActivityEventHandler)) {
 						eventHandler.onMessage(data);
+						return;
 					}
-				});
+
+					Activity activity = ((ActivityEventHandler)eventHandler).getActivity();
+					activity.runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							eventHandler.onMessage(data);
+						}
+					});
+
+					return;
+				}
 			}
 
 			throw new Exception(String.format("알 수 없는 이벤트: %s", event));

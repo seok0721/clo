@@ -14,24 +14,7 @@
             android:layout_height="match_parent"
             android:layout_centerHorizontal="false"
             android:layout_centerVertical="false"
-            class="kr.ac.gachon.clo.ShootingView" />
-
-        <Button
-            android:id="@+id/btnStop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:text="Stop" />
-
-        <Button
-            android:id="@+id/btnStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/btnStop"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="24dp"
-            android:text="Start" />
+            class="kr.ac.gachon.clo.view.ShootingView" />
     </RelativeLayout>
 
     <LinearLayout

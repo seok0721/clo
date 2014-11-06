@@ -20,10 +20,6 @@ public class PeerConnectionGenerator implements Runnable {
 		return instance;
 	}
 
-	public void setPeerConnectionFactory(PeerConnectionFactory factory) {
-		this.factory = factory;
-	}
-
 	public void start() {
 		thread = new Thread(this);
 		thread.start();
@@ -35,7 +31,7 @@ public class PeerConnectionGenerator implements Runnable {
 
 	@Override
 	public void run() {
-		while(!thread.isInterrupted()) {
+		while(!Thread.currentThread().isInterrupted()) {
 			HandshakeHandler handler = new HandshakeHandler();
 			PeerConnectionObserver observer = new PeerConnectionObserver();
 			PeerConnection connection = factory.createPeerConnection(new IceServers(), new SrtpMediaConstraints(), observer);
@@ -46,9 +42,11 @@ public class PeerConnectionGenerator implements Runnable {
 
 			PeerConnectionPool.getInstance().addConnection(connection);
 		}
+
+		PeerConnectionPool.getInstance().release();
 	}
 
 	private PeerConnectionGenerator() {
-		DeviceCapturer.setPeerConnectionFactory(factory);
+		DeviceCapturer.getInstance().setPeerConnectionFactory(factory);
 	}
 }
