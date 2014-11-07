@@ -32,6 +32,7 @@ public class FrontActivity extends Activity implements ActivityExecuteResultHand
 	public void onSuccess() {
 		Toast.makeText(this, "시그널링 서버와 연결되었습니다.", Toast.LENGTH_SHORT).show();
 		startActivity(new Intent(this, SignInActivity.class));
+		finish();
 	}
 
 	@Override

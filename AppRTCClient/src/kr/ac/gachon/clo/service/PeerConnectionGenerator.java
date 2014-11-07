@@ -10,11 +10,15 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 
+import android.util.Log;
+
 public class PeerConnectionGenerator implements Runnable {
 
+	private static final String TAG = PeerConnectionGenerator.class.getSimpleName();
 	private static PeerConnectionGenerator instance = new PeerConnectionGenerator();
 	private PeerConnectionFactory factory = new PeerConnectionFactory();
 	private Thread thread;
+
 
 	public static PeerConnectionGenerator getInstance() {
 		return instance;
@@ -42,6 +46,8 @@ public class PeerConnectionGenerator implements Runnable {
 
 			PeerConnectionPool.getInstance().addConnection(connection);
 		}
+
+		Log.i(TAG, "모든 연결을 종료합니다.");
 
 		PeerConnectionPool.getInstance().release();
 	}

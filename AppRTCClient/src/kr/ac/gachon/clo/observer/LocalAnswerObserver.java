@@ -27,7 +27,7 @@ public class LocalAnswerObserver implements SdpObserver {
 
 	@Override
 	public void onSetSuccess() {
-		Log.i(TAG, "핸들링 하지 않습니다.");
+		Log.i(TAG, "방송자의 세션 교환이 완료되었습니다.");
 	}
 
 	@Override

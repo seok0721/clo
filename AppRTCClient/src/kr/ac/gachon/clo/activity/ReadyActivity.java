@@ -10,6 +10,7 @@ import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.event.EventResult;
 import kr.ac.gachon.clo.handler.OnAirButtonHandler;
 import kr.ac.gachon.clo.service.SocketService;
+import kr.ac.gachon.clo.utils.BitmapUtils;
 import kr.ac.gachon.clo.view.ReadyView;
 
 import org.json.JSONObject;
@@ -17,15 +18,19 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,10 +38,12 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 	private static final String TAG = ReadyActivity.class.getSimpleName();
 	private static final String EVENT = "create";
+	private static Boolean waitForDisconnect = true;
 	private TextView txtAddress;
 	private TextView txtName;
 	private EditText edtTitle;
 	private Button btnOnAir;
+	private ImageView imgThumbnail;
 
 	String name;
 	double x,y;
@@ -45,9 +52,8 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 	boolean gps_enabled = false;
 	boolean network_enabled = false;
 
-
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ready);
 
@@ -57,18 +63,68 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 		edtTitle = (EditText)findViewById(R.id.edtTitle);
 		txtAddress = (TextView)findViewById(R.id.txtLocation);
 		txtName = (TextView)findViewById(R.id.txtLoadName);
+		imgThumbnail = (ImageView)findViewById(R.id.imgLoadThumbnail);
 
 		SocketService.getInstance().addEventHandler(this);
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		if(waitForDisconnect) {
+			SocketService.getInstance().stop();
+
+			finish();
+		}
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+
+		waitForDisconnect = true;
+	}
+
+	@Override
+	public void onMessage(JSONObject data) {
+		String message;
+
+		try {
+			if(data.getInt("ret") == EventResult.FAILURE) {
+				throw new Exception();
+			}
+
+			waitForDisconnect = false;
+
+			Intent intent = new Intent(this, ShootingActivity.class);
+			intent.putExtra("title", getTitleName().getText().toString());
+			intent.putExtra("name", getName().getText().toString());
+			intent.putExtra("address", getAddress().getText().toString());
+			startActivity(intent);
+
+			message = "방송을 시작합니다.";
+		} catch(Exception e) {
+			Log.e(TAG, e.getMessage(), e);
+
+			message = "방을 만드는 도중 오류가 발생하였습니다.";
+		}
+
+		Log.i(TAG, message);
+
+		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
 	protected void onStart() {
 		super.onStart();
 
-		Intent intent = getIntent();
-		Bundle bundle = intent.getExtras();
+		String encodedImage = getIntent().getStringExtra("img");
+		byte[] decodedBytes = Base64.decode(encodedImage, 0);
+		Bitmap bitmapImage = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+		imgThumbnail.setImageBitmap(BitmapUtils.getCircularBitmap(bitmapImage));
 
-		txtName.setText(bundle.getString("name"));
+		txtName.setText(new String(Base64.decode(getIntent().getStringExtra("name"), 0)));
 
 		/*
 		// GPS와 Wifi기지국을 이용해 현재 위치를 가져오는 부분
@@ -245,33 +301,6 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 	}
 
 	@Override
-	public void onMessage(JSONObject data) {
-		String message;
-
-		try {
-			if(data.getInt("ret") == EventResult.FAILURE) {
-				throw new Exception();
-			}
-
-			Intent intent = new Intent(this, ShootingActivity.class);
-			intent.putExtra("title", getTitleName().getText().toString());
-			intent.putExtra("name", getName().getText().toString());
-			intent.putExtra("address", getAddress().getText().toString());
-			startActivity(intent);
-
-			message = "방송을 시작합니다.";
-		} catch(Exception e) {
-			Log.e(TAG, e.getMessage(), e);
-
-			message = "방을 만드는 도중 오류가 발생하였습니다.";
-		}
-
-		Log.i(TAG, message);
-
-		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
 	public Activity getActivity() {
 		return this;
 	}
@@ -279,5 +308,10 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 	@Override
 	public String getEvent() {
 		return EVENT;
+	}
+
+	@Override
+	public ImageView getThumbnailImage() {
+		return imgThumbnail;
 	}
 }

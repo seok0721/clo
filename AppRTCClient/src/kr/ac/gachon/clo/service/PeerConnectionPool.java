@@ -8,8 +8,11 @@ import java.util.concurrent.BlockingQueue;
 
 import org.webrtc.PeerConnection;
 
+import android.util.Log;
+
 public class PeerConnectionPool {
 
+	private static final String TAG = PeerConnectionPool.class.getSimpleName();
 	private static PeerConnectionPool instance = new PeerConnectionPool();
 	private BlockingQueue<PeerConnection> waitQueue = new ArrayBlockingQueue<PeerConnection>(1);
 	private Queue<PeerConnection> runQueue = new LinkedList<PeerConnection>();
@@ -20,6 +23,7 @@ public class PeerConnectionPool {
 
 	public boolean addConnection(PeerConnection connection) {
 		try {
+			Log.i(TAG, "연결을 풀에 추가합니다.");
 			waitQueue.put(connection);
 			return true;
 		} catch(InterruptedException e) {
@@ -29,14 +33,15 @@ public class PeerConnectionPool {
 
 	public PeerConnection getConnection() {
 		try {
-			return waitQueue.take();
+			Log.i(TAG, "연결을 풀에서 꺼냅니다.");
+
+			PeerConnection connection = waitQueue.take();
+			runQueue.add(connection);
+
+			return connection;
 		} catch(InterruptedException e) {
 			return null;
 		}
-	}
-
-	public void accumulate(PeerConnection connection) {
-		runQueue.add(connection);
 	}
 
 	public void release() {
@@ -50,6 +55,9 @@ public class PeerConnectionPool {
 		}
 
 		waitQueue.clear();
+
+		Log.i(TAG, runQueue.size() + "");
+		Log.i(TAG, waitQueue.size() + "");
 	}
 
 	private PeerConnectionPool() {}

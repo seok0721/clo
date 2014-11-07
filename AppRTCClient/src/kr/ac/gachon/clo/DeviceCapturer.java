@@ -6,6 +6,7 @@ import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
+import org.webrtc.MediaStreamTrack.State;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
@@ -20,6 +21,7 @@ public class DeviceCapturer {
 	private static final String DEVICE_NAME = "Camera 0, Facing back, Orientation 90";
 	private static final String LABEL = "CLO";
 	private static DeviceCapturer instance = new DeviceCapturer();
+	private VideoRenderer videoRenderer;
 	private PeerConnectionFactory factory;
 	private MediaStream mediaStream;
 	private VideoCapturer videoCapturer;
@@ -27,13 +29,12 @@ public class DeviceCapturer {
 	private AudioSource audioSource;
 	private VideoTrack videoTrack;
 	private AudioTrack audioTrack;
-	private VideoRenderer videoRenderer;
 	private Callbacks videoRendererCallback;
 	private long serialNumber;
 
 	public static DeviceCapturer getInstance() {
 		return instance;
-	}
+	}	
 
 	public void setPeerConnectionFactory(PeerConnectionFactory factory) {
 		this.factory = factory;
@@ -59,6 +60,29 @@ public class DeviceCapturer {
 		}
 
 		return mediaStream;
+	}
+
+	public void release() {
+		for(AudioTrack track : mediaStream.audioTracks) {
+			track.setEnabled(false);
+			track.setState(State.ENDED);
+			track.dispose();
+		}
+
+		for(VideoTrack track : mediaStream.videoTracks) {
+			track.removeRenderer(videoRenderer);
+			track.setEnabled(false);
+			track.setState(State.ENDED);
+			track.dispose();
+		}
+
+		videoRenderer.dispose();
+
+		videoSource.dispose();
+		audioSource.dispose();
+
+		mediaStream.dispose();
+		mediaStream = null;
 	}
 
 	private DeviceCapturer() {

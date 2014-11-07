@@ -43,7 +43,9 @@ public class SocketService {
 	}
 
 	public void stop() {
-		socket.disconnect();
+		if(socket != null && socket.isConnected()) {
+			socket.disconnect();
+		}
 	}
 
 	public void addEventHandler(EventHandler eventHandler) {
@@ -73,6 +75,10 @@ public class SocketService {
 		param.put("title", title);
 
 		sendMessage("create", param);
+	}
+
+	public void destroy() {
+		sendMessage("destroy");
 	}
 
 	public void handshake(String viewer, String sdp) {

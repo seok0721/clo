@@ -54,7 +54,6 @@ public class SocketCallback implements IOCallback {
 			@Override
 			public void run() {
 				frontActivityHandler.onFailure("서버에 접속하는 중 오류가 발생하였습니다.");
-				frontActivityHandler.onFailure(e.getMessage());
 			}
 		});
 	}

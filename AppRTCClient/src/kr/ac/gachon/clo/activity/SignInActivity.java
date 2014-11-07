@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,15 +22,16 @@ import android.widget.Toast;
 
 public class SignInActivity extends Activity implements SignInView, ActivityEventHandler {
 
-	// private static final String TAG = SignInActivity.class.getSimpleName();
+	private static final String TAG = SignInActivity.class.getSimpleName();
 	private static final String EVENT = "signin";
+	private static Boolean waitForDisconnect = true;
 	private Button btnSignIn;
 	private TextView txtSignUp;
 	private EditText edtEmail;
 	private EditText edtPassword;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_signin);
 
@@ -43,6 +45,21 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 		edtPassword = (EditText)findViewById(R.id.edtSignInPassword);
 
 		SocketService.getInstance().addEventHandler(this);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		Log.i(TAG, "onStop");
+
+		Log.i(TAG, waitForDisconnect.toString());
+
+		if(waitForDisconnect) {
+			SocketService.getInstance().stop();
+		}
+
+		finish();
 	}
 
 	@Override
@@ -64,11 +81,16 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 			return;
 		}
 
+		waitForDisconnect = false;
+
+		Log.i(TAG, waitForDisconnect.toString());
+
 		Intent intent = new Intent(this, ReadyActivity.class);
 		intent.putExtra("email", email);
 		intent.putExtra("name", name);
 		intent.putExtra("img", encodedPortrait);
 		startActivity(intent);
+		finish();
 
 		Global.setChannel(email);
 

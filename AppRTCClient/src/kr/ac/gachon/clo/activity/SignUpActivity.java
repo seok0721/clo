@@ -6,6 +6,7 @@ import kr.ac.gachon.clo.event.EventResult;
 import kr.ac.gachon.clo.handler.SignUpButtonHandler;
 import kr.ac.gachon.clo.handler.ThumbnailClickHandler;
 import kr.ac.gachon.clo.service.SocketService;
+import kr.ac.gachon.clo.utils.BitmapUtils;
 import kr.ac.gachon.clo.view.SignUpView;
 
 import org.json.JSONObject;
@@ -15,11 +16,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore.Images.Media;
@@ -79,7 +75,7 @@ public class SignUpActivity extends Activity implements SignUpView, ActivityEven
 		cursor.close();
 
 		bitThumbnail = getScaledBitmap(thumbnailPath, 300, 300);
-		imgThumbnail.setImageBitmap(getCircularBitmap(bitThumbnail));
+		imgThumbnail.setImageBitmap(BitmapUtils.getCircularBitmap(bitThumbnail));
 	}
 
 	@Override
@@ -109,28 +105,6 @@ public class SignUpActivity extends Activity implements SignUpView, ActivityEven
 		sizeOptions.inSampleSize = inSampleSize;
 
 		return BitmapFactory.decodeFile(picturePath, sizeOptions);
-	}
-
-	public static Bitmap getCircularBitmap(Bitmap bitmap) {
-		int length = (bitmap.getWidth() < bitmap.getHeight()) ? bitmap.getWidth() : bitmap.getHeight();
-		Bitmap output = Bitmap.createBitmap(length, length, Bitmap.Config.ARGB_8888);
-		Canvas canvas = new Canvas(output);
-
-		final int color = 0xff424242;
-		final Paint paint = new Paint();
-		final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-		float r = length / 2;
-
-		paint.setAntiAlias(true);
-		canvas.drawARGB(0, 0, 0, 0);
-
-		paint.setColor(color);
-		canvas.drawCircle(r, r, r, paint);
-
-		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-		canvas.drawBitmap(bitmap, rect, rect, paint);
-
-		return output;
 	}
 
 	private int calculateInSampleSize(BitmapFactory.Options options, int requestWidth, int requestHeight) {
