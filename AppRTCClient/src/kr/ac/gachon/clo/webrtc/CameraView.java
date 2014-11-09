@@ -8,7 +8,7 @@ import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
-public abstract class CameraView extends GLSurfaceView {
+public class CameraView extends GLSurfaceView {
 
 	private Point screenSize = new Point();
 

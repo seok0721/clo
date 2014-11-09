@@ -2,6 +2,7 @@ package kr.ac.gachon.clo.observer;
 
 import kr.ac.gachon.clo.handler.HandshakeHandler;
 import kr.ac.gachon.clo.service.PeerConnectionPool;
+import kr.ac.gachon.clo.service.SocketService;
 
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
@@ -42,16 +43,12 @@ public class PeerConnectionObserver implements Observer {
 
 	@Override
 	public void onSignalingChange(SignalingState signalingState) {
-		Log.i(TAG, "onSignalingChange");
-
-		if(connection.iceGatheringState() == IceGatheringState.COMPLETE && connection.signalingState() == SignalingState.STABLE) {
-			handler.handshake(connection.getLocalDescription().description);
-		}
+		Log.i(TAG, "onSignalingChange: " + signalingState.name());
 	}
 
 	@Override
 	public void onIceGatheringChange(IceGatheringState iceGatheringState) {
-		Log.i(TAG, "onIceGatheringChange");
+		Log.i(TAG, "onIceGatheringChange: " + iceGatheringState.name());
 
 		if(connection.iceGatheringState() == IceGatheringState.COMPLETE && connection.signalingState() == SignalingState.STABLE) {
 			handler.handshake(connection.getLocalDescription().description);
@@ -60,7 +57,13 @@ public class PeerConnectionObserver implements Observer {
 
 	@Override
 	public void onIceConnectionChange(IceConnectionState iceConnectionState) {
-		Log.i(TAG, "onIceConnectionChange");
+		Log.i(TAG, "onIceConnectionChange: " + iceConnectionState.name());
+
+		if(iceConnectionState == IceConnectionState.CONNECTED) {
+			PeerConnectionPool.getInstance().addConnection(connection);
+			SocketService.getInstance().removeEventHandler(handler);
+			SocketService.getInstance().addEventHandler(new HandshakeHandler());
+		}
 	}
 
 	@Override

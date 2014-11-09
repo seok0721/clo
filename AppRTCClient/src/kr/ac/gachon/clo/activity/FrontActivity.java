@@ -18,8 +18,6 @@ public class FrontActivity extends Activity implements ActivityExecuteResultHand
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_front);
 
-		Log.i(TAG, "Create");
-
 		try {
 			Thread.sleep(1000);
 		} catch(InterruptedException e) {}
@@ -30,6 +28,8 @@ public class FrontActivity extends Activity implements ActivityExecuteResultHand
 
 	@Override
 	public void onSuccess() {
+		Log.i(TAG, "onSuccess");
+
 		Toast.makeText(this, "시그널링 서버와 연결되었습니다.", Toast.LENGTH_SHORT).show();
 		startActivity(new Intent(this, SignInActivity.class));
 		finish();
@@ -37,6 +37,8 @@ public class FrontActivity extends Activity implements ActivityExecuteResultHand
 
 	@Override
 	public void onFailure(String message) {
+		Log.i(TAG, "onFailure");
+
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 		finish();
 	}
@@ -44,47 +46,5 @@ public class FrontActivity extends Activity implements ActivityExecuteResultHand
 	@Override
 	public Activity getActivity() {
 		return this;
-	}
-
-	@Override
-	public void onStart() {
-		super.onStart();
-
-		Log.i(TAG, "Start");
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-
-		Log.i(TAG, "Resume");
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-
-		Log.i(TAG, "Pause");
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-
-		Log.i(TAG, "Stop");
-	}
-
-	@Override
-	public void onRestart() {
-		super.onRestart();
-
-		Log.i(TAG, "Restart");
-	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-
-		Log.i(TAG, "Destroy");
 	}
 }

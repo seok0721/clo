@@ -19,15 +19,15 @@ public class InfoButtonHandler implements OnClickListener {
 
 			@Override
 			public void run() {
-				activity.getInfoPanel().setVisibility(View.VISIBLE);
-
 				activity.getCommentPanel().setVisibility(View.GONE);
 
-				activity.getCommentButton().setBackgroundColor(Color.rgb(255,255,255));
-				activity.getCommentButton().setTextColor(Color.rgb(38,38,38));
+				activity.getInfoPanel().setVisibility(View.VISIBLE);
 
-				activity.getInfoButton().setBackgroundColor(Color.rgb(232,232,232));
-				activity.getInfoButton().setTextColor(Color.rgb(155,155,155));
+				activity.getCommentButton().setBackgroundColor(Color.rgb(232,232,232));
+				activity.getCommentButton().setTextColor(Color.rgb(155,155,155));
+
+				activity.getInfoButton().setBackgroundColor(Color.rgb(255,255,255));
+				activity.getInfoButton().setTextColor(Color.rgb(38,38,38));
 			}
 		});
 	}

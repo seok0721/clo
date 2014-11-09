@@ -2,9 +2,11 @@ package kr.ac.gachon.clo.activity;
 
 import java.util.ArrayList;
 
+import kr.ac.gachon.clo.Global;
 import kr.ac.gachon.clo.R;
 import kr.ac.gachon.clo.handler.CameraViewHandler;
 import kr.ac.gachon.clo.handler.CommentButtonHandler;
+import kr.ac.gachon.clo.handler.HandshakeHandler;
 import kr.ac.gachon.clo.handler.InfoButtonHandler;
 import kr.ac.gachon.clo.handler.PlayButtonHandler;
 import kr.ac.gachon.clo.handler.ViewerCountHandler;
@@ -12,6 +14,9 @@ import kr.ac.gachon.clo.service.PeerConnectionGenerator;
 import kr.ac.gachon.clo.service.SocketService;
 import kr.ac.gachon.clo.view.ShootingView;
 import kr.ac.gachon.clo.webrtc.CameraView;
+
+import org.webrtc.PeerConnectionFactory;
+
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
@@ -31,12 +36,13 @@ public class ShootingActivity extends Activity implements ShootingView {
 	private static final String TAG = ShootingActivity.class.getSimpleName();
 	private CameraView cameraView;
 	private LinearLayout  pnlInfo;
-	private ListView pnlComment;	
+	private ListView pnlComment;
 	private Button btnComment;
 	private Button btnInfo;
 	private ImageView btnPlay;
-	private ImageView btnLike;
+	// private ImageView btnLike;
 	private TextView txtTitle;
+	private TextView txtHudTitle;
 	private TextView txtClientCount;
 	private TextView txtUser;
 	private TextView txtAddress;
@@ -48,13 +54,16 @@ public class ShootingActivity extends Activity implements ShootingView {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_shooting);
 
-		PeerConnectionGenerator.setup(this);
+		PeerConnectionFactory.initializeAndroidGlobals(this, true, true); // #1
 
-		ViewerCountHandler.getInstance().setShootingActivity(this);
-
-		cameraView = (CameraView)findViewById(R.id.shootingView);
-		cameraView.initialize(this);
+		cameraView = (CameraView)findViewById(R.id.cameraView);
+		cameraView.initialize(this); // #2
 		cameraView.setOnClickListener(new CameraViewHandler(this));
+
+		PeerConnectionGenerator.setup(); // #3
+
+		SocketService.getInstance().addEventHandler(new HandshakeHandler());
+		ViewerCountHandler.getInstance().setShootingActivity(this);
 
 		btnComment = (Button)findViewById(R.id.btn_comment);
 		btnComment.setOnClickListener(new CommentButtonHandler(this));
@@ -72,15 +81,16 @@ public class ShootingActivity extends Activity implements ShootingView {
 		txtUser.setText(getIntent().getStringExtra("name"));
 
 		txtTitle = (TextView)findViewById(R.id.txt_title);
-		txtTitle.setText(getIntent().getStringExtra("title"));
+		txtTitle.setText(Global.getChannel());
+
+		txtHudTitle = (TextView)findViewById(R.id.shootTitle);
+		txtHudTitle.setText(Global.getChannel());
 
 		txtAddress = (TextView)findViewById(R.id.txt_location);
 		txtAddress.setText(getIntent().getStringExtra("address"));
 
 		txtClientCount = (TextView)findViewById(R.id.txtPop);
 		txtClientCount.setText("접속자: 0명");
-
-		txtTitle = (TextView)findViewById(R.id.shootTitle);
 
 		arItem = new ArrayList<MyItem>();
 		MyItem mi;

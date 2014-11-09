@@ -51,10 +51,6 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 	public void onStop() {
 		super.onStop();
 
-		Log.i(TAG, "onStop");
-
-		Log.i(TAG, waitForDisconnect.toString());
-
 		if(waitForDisconnect) {
 			SocketService.getInstance().stop();
 		}
@@ -64,6 +60,8 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 
 	@Override
 	public void onMessage(JSONObject data) {
+		Log.i(TAG, "onMessage");
+
 		int ret = EventResult.FAILURE;
 		String email = null;
 		String name = null;
@@ -83,16 +81,13 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 
 		waitForDisconnect = false;
 
-		Log.i(TAG, waitForDisconnect.toString());
-
 		Intent intent = new Intent(this, ReadyActivity.class);
-		intent.putExtra("email", email);
 		intent.putExtra("name", name);
 		intent.putExtra("img", encodedPortrait);
 		startActivity(intent);
-		finish();
 
 		Global.setChannel(email);
+		finish();
 
 		Toast.makeText(this, "로그인에 성공하였습니다.", Toast.LENGTH_SHORT).show();
 	}

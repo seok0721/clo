@@ -112,6 +112,10 @@ public class SocketService {
 		callback.removeEventHandler(eventHandler);
 	}
 
+	public void clearHandshakeHandler() {
+		callback.clearHandshakeHandler();
+	}
+
 	private void sendMessage(String event, Map<String, Object> param) {
 		if((socket == null) || !socket.isConnected()) {
 			Log.e(TAG, "시그널링 서버와 연결되지 않았습니다.");
@@ -229,7 +233,6 @@ public class SocketService {
 		}
 
 		public SocketCallback() {
-			eventHandlerList.add(new HandshakeHandler());
 			eventHandlerList.add(ViewerCountHandler.getInstance());
 		}
 
@@ -239,6 +242,18 @@ public class SocketService {
 
 		public void addEventHandler(EventHandler eventHandler) {
 			eventHandlerList.add(eventHandler);
+		}
+
+		public void clearHandshakeHandler() {
+			Iterator<EventHandler> iter = eventHandlerList.iterator();
+
+			while(iter.hasNext()) {
+				EventHandler mEventhandler = iter.next();
+
+				if(mEventhandler instanceof HandshakeHandler) {
+					iter.remove();
+				}
+			}
 		}
 
 		public void removeEventHandler(EventHandler eventHandler) {

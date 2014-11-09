@@ -3,18 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <FrameLayout
-        android:id="@+id/content_frame"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
         <kr.ac.gachon.clo.webrtc.CameraView
-            android:id="@+id/shootingView"
+            android:id="@+id/cameraView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerHorizontal="false"

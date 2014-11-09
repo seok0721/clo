@@ -20,7 +20,6 @@ import org.webrtc.VideoRendererGui;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
-import android.app.Activity;
 import android.util.Log;
 
 public class PeerConnectionGenerator {
@@ -30,9 +29,7 @@ public class PeerConnectionGenerator {
 	private PeerConnectionFactory factory;
 	private DeviceCapturer2 deviceCapturer;
 
-	public static void setup(Activity activity) {
-		PeerConnectionFactory.initializeAndroidGlobals(activity, true, true);
-
+	public static void setup() {
 		instance = new PeerConnectionGenerator();
 	}
 

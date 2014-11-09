@@ -48,9 +48,9 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 	String name;
 	double x,y;
 	Timer timer;
-	LocationManager lm;
-	boolean gps_enabled = false;
-	boolean network_enabled = false;
+	LocationManager locationMananger;
+	boolean isGPSEnabled = false;
+	boolean isNetworkEnabled = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -66,6 +66,46 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 		imgThumbnail = (ImageView)findViewById(R.id.imgLoadThumbnail);
 
 		SocketService.getInstance().addEventHandler(this);
+
+		super.onStart();
+
+		String encodedImage = getIntent().getStringExtra("img");
+		byte[] decodedBytes = Base64.decode(encodedImage, 0);
+		Bitmap bitmapImage = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+
+		try {
+			imgThumbnail.setImageBitmap(BitmapUtils.getCircularBitmap(bitmapImage));
+		} catch (Exception e) {
+			Toast.makeText(this, "디폴트 썸네일을 사용합니다.", Toast.LENGTH_SHORT).show();
+		}
+
+		try {
+			txtName.setText(new String(Base64.decode(getIntent().getStringExtra("name"), 0)));
+		} catch (Exception e) {
+			Toast.makeText(this, "알 수 없는 이름입니다.", Toast.LENGTH_SHORT).show();
+			txtName.setText("Unknown");
+		}
+
+		locationMananger = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+
+		isGPSEnabled = locationMananger.isProviderEnabled(LocationManager.GPS_PROVIDER);
+		isNetworkEnabled = locationMananger.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+		if(!isGPSEnabled && !isNetworkEnabled) {
+			Toast.makeText(this, "nothing is enabled", Toast.LENGTH_SHORT).show();
+			return;
+		}
+
+		if(isGPSEnabled) {
+			locationMananger.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, gpsLocationListener);
+		}
+
+		if(isNetworkEnabled) {
+			locationMananger.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, networkLocationListener);
+		}
+
+		timer = new Timer();
+		timer.schedule(new GetLastLocation(), 20000);
 	}
 
 	@Override
@@ -90,6 +130,10 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 	public void onMessage(JSONObject data) {
 		String message;
 
+		if(!waitForDisconnect) {
+			return;
+		}
+
 		try {
 			if(data.getInt("ret") == EventResult.FAILURE) {
 				throw new Exception();
@@ -98,8 +142,8 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 			waitForDisconnect = false;
 
 			Intent intent = new Intent(this, ShootingActivity.class);
-			intent.putExtra("title", getTitleName().getText().toString());
 			intent.putExtra("name", getName().getText().toString());
+			intent.putExtra("title", getTitleName().getText().toString());
 			intent.putExtra("address", getAddress().getText().toString());
 			startActivity(intent);
 
@@ -113,43 +157,6 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 		Log.i(TAG, message);
 
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-
-		String encodedImage = getIntent().getStringExtra("img");
-		byte[] decodedBytes = Base64.decode(encodedImage, 0);
-		Bitmap bitmapImage = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-		imgThumbnail.setImageBitmap(BitmapUtils.getCircularBitmap(bitmapImage));
-
-		txtName.setText(new String(Base64.decode(getIntent().getStringExtra("name"), 0)));
-
-		// GPS와 Wifi기지국을 이용해 현재 위치를 가져오는 부분
-		lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-		gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-		if (!gps_enabled && !network_enabled) {
-			Context context = getApplicationContext();
-			int duration = Toast.LENGTH_SHORT;
-			Toast toast = Toast.makeText(context, "nothing is enabled", duration);
-			toast.show();
-		}
-
-		if(gps_enabled) {
-			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListenerGps);
-		}
-
-		if(network_enabled) {
-			lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListenerNetwork);
-		}
-
-		timer = new Timer();
-		timer.schedule(new GetLastLocation(), 20000);
-
 	}
 
 	// Geocoder를 이용해서 latitude와 longitude를 통해 주소를 얻는 부분
@@ -170,13 +177,13 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 	}
 
 	// latitude를 구하고 longtitude를 구하기 위한 소스들
-	LocationListener locationListenerGps = new LocationListener() {
+	LocationListener gpsLocationListener = new LocationListener() {
 		public void onLocationChanged(Location location) {
 			timer.cancel();
-			x =location.getLatitude();
+			x = location.getLatitude();
 			y = location.getLongitude();
-			lm.removeUpdates(this);
-			lm.removeUpdates(locationListenerNetwork);
+			locationMananger.removeUpdates(this);
+			locationMananger.removeUpdates(networkLocationListener);
 
 			txtAddress.setText(getAddress(x,y)); //get Current Address used x,y
 
@@ -196,13 +203,14 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 		}
 	};
 
-	LocationListener locationListenerNetwork = new LocationListener() {
+	LocationListener networkLocationListener = new LocationListener() {
+
 		public void onLocationChanged(Location location) {
 			timer.cancel();
 			x = location.getLatitude();
 			y = location.getLongitude();
-			lm.removeUpdates(this);
-			lm.removeUpdates(locationListenerGps);
+			locationMananger.removeUpdates(this);
+			locationMananger.removeUpdates(gpsLocationListener);
 
 			txtAddress.setText(getAddress(x,y)); //get Current Address used x,y
 
@@ -226,14 +234,14 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 		@Override
 		public void run() {
-			lm.removeUpdates(locationListenerGps);
-			lm.removeUpdates(locationListenerNetwork);
+			locationMananger.removeUpdates(gpsLocationListener);
+			locationMananger.removeUpdates(networkLocationListener);
 
 			Location net_loc = null, gps_loc = null;
-			if (gps_enabled)
-				gps_loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			if (network_enabled)
-				net_loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			if (isGPSEnabled)
+				gps_loc = locationMananger.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			if (isNetworkEnabled)
+				net_loc = locationMananger.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
 			//if there are both values use the latest one
 			if (gps_loc != null && net_loc != null) {
@@ -274,8 +282,7 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 			Context context = getApplicationContext();
 			int duration = Toast.LENGTH_SHORT;
-			// Toast toast = Toast.makeText(context, "no last know avilable", duration);
-			// toast.show();
+			Toast.makeText(context, "no last know avilable", duration).show();
 		}
 	}
 
