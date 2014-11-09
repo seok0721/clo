@@ -126,7 +126,6 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 		txtName.setText(new String(Base64.decode(getIntent().getStringExtra("name"), 0)));
 
-		/*
 		// GPS와 Wifi기지국을 이용해 현재 위치를 가져오는 부분
 		lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
@@ -150,7 +149,7 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 		timer = new Timer();
 		timer.schedule(new GetLastLocation(), 20000);
-		 */
+
 	}
 
 	// Geocoder를 이용해서 latitude와 longitude를 통해 주소를 얻는 부분
@@ -275,8 +274,8 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 			Context context = getApplicationContext();
 			int duration = Toast.LENGTH_SHORT;
-			Toast toast = Toast.makeText(context, "no last know avilable", duration);
-			toast.show();
+			// Toast toast = Toast.makeText(context, "no last know avilable", duration);
+			// toast.show();
 		}
 	}
 

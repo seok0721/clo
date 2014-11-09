@@ -1,4 +1,4 @@
-package kr.ac.gachon.clo;
+package kr.ac.gachon.clo.webrtc;
 
 import java.util.Calendar;
 
@@ -6,7 +6,6 @@ import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
-import org.webrtc.MediaStreamTrack.State;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoRenderer;
@@ -15,14 +14,18 @@ import org.webrtc.VideoRendererGui;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 
+import android.bluetooth.BluetoothClass.Device;
+import android.util.Log;
+
 public class DeviceCapturer {
 
-	// private static final String TAG = DeviceCapturer.class.getSimpleName();
+	private static final String TAG = DeviceCapturer.class.getSimpleName();
 	private static final String DEVICE_NAME = "Camera 0, Facing back, Orientation 90";
 	private static final String LABEL = "CLO";
 	private static DeviceCapturer instance = new DeviceCapturer();
+	private static PeerConnectionFactory factory;
+	private boolean isOpened = false;
 	private VideoRenderer videoRenderer;
-	private PeerConnectionFactory factory;
 	private MediaStream mediaStream;
 	private VideoCapturer videoCapturer;
 	private VideoSource videoSource;
@@ -32,16 +35,18 @@ public class DeviceCapturer {
 	private Callbacks videoRendererCallback;
 	private long serialNumber;
 
-	public static DeviceCapturer getInstance() {
-		return instance;
-	}	
-
-	public void setPeerConnectionFactory(PeerConnectionFactory factory) {
-		this.factory = factory;
+	public static void setPeerConnectionFactory(PeerConnectionFactory factory) {
+		DeviceCapturer.factory = factory;
 	}
 
 	public MediaStream getMediaStream() {
 		if(mediaStream == null) {
+			isOpened = true;
+
+			Log.i(TAG, "새 멀티미디어 스트림을 생성합니다.");
+
+			videoCapturer = VideoCapturer.create(DEVICE_NAME);
+
 			serialNumber = Calendar.getInstance().getTimeInMillis();
 
 			mediaStream = factory.createLocalMediaStream(String.format("%s%d", LABEL, serialNumber));
@@ -52,8 +57,8 @@ public class DeviceCapturer {
 
 			videoRendererCallback = VideoRendererGui.create(0, 0, 100, 100);
 			videoRenderer = new VideoRenderer(videoRendererCallback);
-
 			videoSource = factory.createVideoSource(videoCapturer, new MediaConstraints());
+
 			videoTrack = factory.createVideoTrack(String.format("%sv%d", LABEL, serialNumber), videoSource);
 			videoTrack.addRenderer(videoRenderer);
 			mediaStream.addTrack(videoTrack);
@@ -63,29 +68,25 @@ public class DeviceCapturer {
 	}
 
 	public void release() {
+		if(!isOpened) {
+			Log.i(TAG, "이미 멀티미디어 스트림은 종료되었습니다.");
+			return;
+		}
+
+		Log.i(TAG, "멀티미디어 스트림을 종료합니다.");
+
 		for(AudioTrack track : mediaStream.audioTracks) {
-			track.setEnabled(false);
-			track.setState(State.ENDED);
-			track.dispose();
+			mediaStream.removeTrack(track);
 		}
 
 		for(VideoTrack track : mediaStream.videoTracks) {
-			track.removeRenderer(videoRenderer);
-			track.setEnabled(false);
-			track.setState(State.ENDED);
-			track.dispose();
+			mediaStream.removeTrack(track);
 		}
 
-		videoRenderer.dispose();
-
-		videoSource.dispose();
-		audioSource.dispose();
-
-		mediaStream.dispose();
-		mediaStream = null;
+		videoSource.stop();
 	}
 
 	private DeviceCapturer() {
-		videoCapturer = VideoCapturer.create(DEVICE_NAME);
+
 	}
 }

@@ -8,6 +8,6 @@ public class StartButtonHandler implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		PeerConnectionGenerator.getInstance().start();
+		// PeerConnectionGenerator.getInstance().start();
 	}
 }

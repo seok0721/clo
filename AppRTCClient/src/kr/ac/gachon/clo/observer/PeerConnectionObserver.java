@@ -43,13 +43,17 @@ public class PeerConnectionObserver implements Observer {
 	@Override
 	public void onSignalingChange(SignalingState signalingState) {
 		Log.i(TAG, "onSignalingChange");
+
+		if(connection.iceGatheringState() == IceGatheringState.COMPLETE && connection.signalingState() == SignalingState.STABLE) {
+			handler.handshake(connection.getLocalDescription().description);
+		}
 	}
 
 	@Override
 	public void onIceGatheringChange(IceGatheringState iceGatheringState) {
 		Log.i(TAG, "onIceGatheringChange");
 
-		if(iceGatheringState == IceGatheringState.COMPLETE) {
+		if(connection.iceGatheringState() == IceGatheringState.COMPLETE && connection.signalingState() == SignalingState.STABLE) {
 			handler.handshake(connection.getLocalDescription().description);
 		}
 	}

@@ -1,4 +1,4 @@
-package kr.ac.gachon.clo;
+package kr.ac.gachon.clo.webrtc;
 
 import org.webrtc.MediaConstraints;
 

@@ -1,38 +1,20 @@
 package kr.ac.gachon.clo.view;
 
-import org.webrtc.VideoRendererGui;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.Point;
-import android.opengl.GLSurfaceView;
-import android.util.AttributeSet;
+public interface ShootingView {
 
-public class ShootingView extends GLSurfaceView {
+	Button getCommentButton();
+	Button getInfoButton();
+	ImageView getPlayButton();
 
-	private Point screenSize = new Point();
+	LinearLayout getInfoPanel();
+	ListView getCommentPanel();
 
-	public ShootingView(Context context, AttributeSet attr) {
-		super(context, attr);
-	}
-
-	public void init(Activity activity) {
-		VideoRendererGui.setView(this);
-
-		activity.getWindowManager().getDefaultDisplay().getRealSize(screenSize);
-	}
-
-	@Override
-	protected void onMeasure(int unusedX, int unusedY) {
-		setMeasuredDimension(screenSize.x - 1, screenSize.y - 1);
-	}
-
-	@Override
-	protected void onAttachedToWindow() {
-		super.onAttachedToWindow();
-
-		setSystemUiVisibility(SYSTEM_UI_FLAG_HIDE_NAVIGATION
-				| SYSTEM_UI_FLAG_FULLSCREEN
-				| SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-	}
+	TextView getTitleView();
+	TextView getClientCount();
 }

@@ -14,7 +14,7 @@ public class PeerConnectionPool {
 
 	private static final String TAG = PeerConnectionPool.class.getSimpleName();
 	private static PeerConnectionPool instance = new PeerConnectionPool();
-	private BlockingQueue<PeerConnection> waitQueue = new ArrayBlockingQueue<PeerConnection>(1);
+	private BlockingQueue<PeerConnection> waitQueue = new ArrayBlockingQueue<PeerConnection>(10); // Before 1
 	private Queue<PeerConnection> runQueue = new LinkedList<PeerConnection>();
 
 	public static PeerConnectionPool getInstance() {
@@ -24,9 +24,10 @@ public class PeerConnectionPool {
 	public boolean addConnection(PeerConnection connection) {
 		try {
 			Log.i(TAG, "연결을 풀에 추가합니다.");
-			waitQueue.put(connection);
+			// waitQueue.put(connection);
+			waitQueue.add(connection);
 			return true;
-		} catch(InterruptedException e) {
+		} catch(Exception e) {
 			return false;
 		}
 	}
@@ -36,10 +37,11 @@ public class PeerConnectionPool {
 			Log.i(TAG, "연결을 풀에서 꺼냅니다.");
 
 			PeerConnection connection = waitQueue.take();
+			// PeerConnection connection = waitQueue.poll();
 			runQueue.add(connection);
 
 			return connection;
-		} catch(InterruptedException e) {
+		} catch(Exception e) {
 			return null;
 		}
 	}
