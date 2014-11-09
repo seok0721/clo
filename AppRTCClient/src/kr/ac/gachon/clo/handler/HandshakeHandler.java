@@ -32,6 +32,9 @@ public class HandshakeHandler implements EventHandler {
 
 			this.viewer = viewer;
 
+			SocketService.getInstance().removeEventHandler(this);
+			SocketService.getInstance().addEventHandler(new HandshakeHandler());
+
 			PeerConnection connection = PeerConnectionGenerator.getInstance().createPeerConnection();
 			connection.setRemoteDescription(new RemoteOfferObserver(connection, this), new SessionDescription(Type.OFFER, sdp));
 		} catch(Exception e) {

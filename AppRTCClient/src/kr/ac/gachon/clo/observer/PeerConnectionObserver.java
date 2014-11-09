@@ -61,8 +61,6 @@ public class PeerConnectionObserver implements Observer {
 
 		if(iceConnectionState == IceConnectionState.CONNECTED) {
 			PeerConnectionPool.getInstance().addConnection(connection);
-			SocketService.getInstance().removeEventHandler(handler);
-			SocketService.getInstance().addEventHandler(new HandshakeHandler());
 		}
 	}
 
