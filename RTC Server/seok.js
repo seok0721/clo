@@ -1,7 +1,7 @@
 /*
  * Import Module
  */
-var io = require('socket.io').listen(10080);
+var io = require('socket.io').listen(10000);
 var inspect = require('util').inspect;
 var maria = require('./maria.js');
 var redis = require('./redis.js');
@@ -18,6 +18,11 @@ var FAILURE = 1;
 var TAG = 'server.js'
 
 /*
+ * Static Variables
+ */
+var broadcastPool = {}; // 키: 채널, 값: 소켓
+
+/*
  * Static Function
  */
 function socket_handler(socket) {
@@ -31,12 +36,44 @@ function socket_handler(socket) {
   socket.on('join', join_channel_handler); // 방 들어가기
   socket.on('withdraw', withdraw_channel_handler); // 방 나오기
   socket.on('disconnect', disconnect_handler); // 서버 접속 종료
+  socket.on('handshake', handshake_handler); // 오퍼-앤서 핸드쉐이크
+  socket.on('handshake2', handshake2_handler); // 오퍼-앤서 핸드쉐이크
+
+  function handshake_handler(data) {
+    var channel = data.channel;
+    var sdp = data.sdp;
+    var broadcaster = broadcastPool[channel];
+
+    if(!broadcaster) {
+      console.log('방송중인 채널이 없습니다.');
+      return;
+    }
+
+    socket.join(channel);
+
+    broadcaster.emit('handshake', {
+      'viewer': socket.id,
+      'channel': channel,
+      'sdp': sdp
+    });
+  }
+
+  function handshake2_handler(data) {
+    var viewer = data.viewer;
+    var channel = data.channel;
+    var sdp = data.sdp;
+
+    io.sockets.sockets[viewer].emit('handshake2', {
+      'channel': channel,
+      'sdp': sdp
+    });
+  }
 
   function signup_handler(data) {
     var email = data.email;
     var pwd = data.pwd;
     var name = data.name;
-    var image = data.img;
+    var image = data.image;
 
     maria.exist_broadcaster(email, pwd, function(err, exist) {
       if(err) {
@@ -154,6 +191,9 @@ function socket_handler(socket) {
       Log.i(TAG + '.create_channel_handler', '채널을 성공적으로 만들었습니다.');
       Log.i(TAG + '.create_channel_handler', '계정: ' + socket.email);
       Log.i(TAG + '.create_channel_handler', '제목: ' + socket.title);
+
+      // 2014-11-03 ADD
+      broadcastPool[socket.email] = socket;
 
       emit_success('create');
     });
