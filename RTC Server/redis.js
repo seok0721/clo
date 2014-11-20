@@ -7,7 +7,7 @@ var crypto = require('crypto');
 var random = require('randomstring');
 var Log = require('./logger.js');
 var inspect = require('util').inspect;
-var TAG = 'redis.js';
+var TAG = 'Redis.io';
 
 /*
  * Main Routine
@@ -21,6 +21,20 @@ redis.on('ready', function() {
 
   redis.flushall();
 });
+
+function get_channel_list(callback) {
+  redis.hgetall('channel', function(err, data) {
+    if(err) {
+      callback(err);
+      return;
+    }
+
+    data = JSON.parse(data);
+
+    Log.i(TAG + '.get_channel_list', '');
+    callback(null, data);
+  });
+}
 
 function /* er */ exist_channel(email, callback) {
   redis.hget('channel', email, function(err, data) {
@@ -112,7 +126,7 @@ function /* cs */ create_session(email) {
   redis.hset('broadcaster', email, JSON.stringify({}));
 }
 
-function /* cr */ create_channel(email, title, callback) {
+function /* cr */ create_channel(email, name, title, img, callback) {
   redis.hget('broadcaster', email, function(err, data) {
     if(err) {
       Log.e(TAG + '.create_channel', err);
@@ -128,7 +142,9 @@ function /* cr */ create_channel(email, title, callback) {
 
     // redis.hset('broadcaster', email, JSON.stringify(data));
     redis.hset('channel', email, JSON.stringify({
-      'title': title
+      'title': title,
+      'name': name,
+      'img': img
     }));
 
     Log.i(TAG + '.create_channel', '채널을 생성합니다.');
@@ -140,17 +156,12 @@ function /* cr */ create_channel(email, title, callback) {
 }
 
 function /* dr */ destroy_room(email) {
-  redis.hget('broadcaster', email, function(err, ret) {
+  redis.hdel('channel', email, function(err, ret) {
     if(err) {
-      Log.e(TAG + '.create_channel', err);
+      Log.e(TAG + '.destroy_room', err);
       callback(err);
       return;
     }
-
-    Log.i(TAG + '.destroy_room', inspect(data));
-    data = JSON.parse(ret);
-    delete data.title;
-    redis.hset('broadcaster', email, JSON.stringify(data));
   });
 }
 
@@ -201,4 +212,5 @@ module.exports.exist_channel = exist_channel;
 module.exports.create_channel = create_channel;
 module.exports.destroy_room = destroy_room;
 module.exports.destroy_session = destroy_session;
+module.exports.get_channel_list = get_channel_list;
 

@@ -15,7 +15,7 @@ import kr.ac.gachon.clo.Global;
 import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.event.ActivityExecuteResultHandler;
 import kr.ac.gachon.clo.event.EventHandler;
-import kr.ac.gachon.clo.handler.HandshakeHandler;
+import kr.ac.gachon.clo.handler.OfferHandler;
 import kr.ac.gachon.clo.handler.ViewerCountHandler;
 
 import org.json.JSONObject;
@@ -67,7 +67,7 @@ public class SocketService {
 		param.put("email", email);
 		param.put("pwd", password);
 
-		sendMessage("signin", param);
+		sendMessage("signIn", param);
 	}
 
 	public void signUp(String email, String password, String name, String base64EncodedBitmap) {
@@ -77,31 +77,31 @@ public class SocketService {
 		param.put("name", name);
 		param.put("img", base64EncodedBitmap);
 
-		sendMessage("signup", param);
+		sendMessage("signUp", param);
 	}
 
-	public void createRoom(String title) {
+	public void createChannel(String title) {
 		Map<String, Object> param = new HashMap<String, Object>();
 		param.put("title", title);
 
-		sendMessage("create", param);
+		sendMessage("createChannel", param);
 	}
 
-	public void destroy() {
-		sendMessage("destroy");
+	public void removeChannel() {
+		sendMessage("removeChannel");
 	}
 
-	public void handshake(String viewer, String sdp) {
+	public void answer(String socketId, String sdp) {
 		Map<String, Object> param = new HashMap<String, Object>();
-		param.put("viewer", viewer);
-		param.put("channel", Global.getChannel());
+		param.put("socketId", socketId);
+		param.put("email", Global.getEmail());
 		param.put("sdp", sdp);
 
-		sendMessage("handshake2", param);
+		sendMessage("answer", param);
 	}
 
 	public void signOut() {
-		sendMessage("signout");
+		sendMessage("signOut");
 	}
 
 	public void addEventHandler(EventHandler eventHandler) {
@@ -250,7 +250,7 @@ public class SocketService {
 			while(iter.hasNext()) {
 				EventHandler mEventhandler = iter.next();
 
-				if(mEventhandler instanceof HandshakeHandler) {
+				if(mEventhandler instanceof OfferHandler) {
 					iter.remove();
 				}
 			}

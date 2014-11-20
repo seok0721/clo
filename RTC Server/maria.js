@@ -16,7 +16,7 @@ var config = {
  */
 var SUCCESS = 0;
 var FAILURE = 1;
-var TAG = 'maria.js'
+var TAG = 'Maria DB'
 
 /*
  * Global Function
@@ -25,7 +25,7 @@ function log(message) {
   console.log('Maria: ' + message);
 }
 
-function exist_broadcaster(email, pwd, callback) {
+function existBroadcaster(email, pwd, callback) {
   client.query('SELECT 1 FROM TBL_BROADCASTER WHERE EMAIL = :email AND PASSWD = :pwd', {
     'email': email,
     'pwd': pwd
@@ -54,20 +54,18 @@ function read_broadcaster(email, pwd, callback) {
       callback(err);
     }).on('row', function(data) {
       Log.i(TAG + '.read_broadcaster', data.email + ',' + data.pwd + ',' + data.name);
-      callback(null, data.email ? data : null);
+      callback(null, data.email ? data : {});
     });
   });
 }
 
-function create_broadcaster(data, callback) {
+function createBroadcaster(data, callback) {
   var email = data.email;
   var pwd   = data.pwd;
   var name  = data.name;
   var img   = data.img;
 
-  Log.d(TAG + '.create_broadcaster', inspect(data));
-
-  client.query('INSERT INTO TBL_BROADCASTER VALUES ( :email, :pwd , :name, :image )', {
+  client.query('INSERT INTO TBL_BROADCASTER VALUES ( :email, :pwd , :name, :img )', {
     'email': email,
     'pwd':   pwd,
     'name':  name,
@@ -86,13 +84,13 @@ function create_broadcaster(data, callback) {
  */
 client
 .on('connect', function() {
-  log('Connect');
+  Log.i(TAG, 'ready');
 })
 .on('error', function(err) {
-  log('Error, ' + err);
+  Log.i(TAG, 'Error, ' + err);
 })
 .on('close', function(err) {
-  log('Close, ' + err);
+  Log.i(TAG, 'Close, ' + err);
 });
 
 client.connect(config);
@@ -100,6 +98,6 @@ client.connect(config);
 /*
  * Export Symbol
  */
-module.exports.exist_broadcaster = exist_broadcaster;
+module.exports.existBroadcaster = existBroadcaster;
 module.exports.read_broadcaster = read_broadcaster;
-module.exports.create_broadcaster = create_broadcaster;
+module.exports.createBroadcaster = createBroadcaster;

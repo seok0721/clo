@@ -27,15 +27,15 @@ public class PlayButtonHandler implements OnClickListener {
 			@Override
 			public void run() {
 				if(!isStarted) {
-					SocketService.getInstance().createRoom(Global.getChannel());
+					SocketService.getInstance().createChannel(Global.getEmail());
 					activity.getPlayButton().setImageBitmap(bitmapResize(R.drawable.stop, 200, 200));
 					isStarted = true;
 
-					SocketService.getInstance().addEventHandler(new HandshakeHandler());
+					SocketService.getInstance().addEventHandler(new OfferHandler());
 
 					Toast.makeText(activity, "방송을 시작합니다.", Toast.LENGTH_SHORT).show();
 				} else {
-					SocketService.getInstance().destroy();
+					SocketService.getInstance().removeChannel();
 
 					activity.getPlayButton().setImageBitmap(bitmapResize(R.drawable.start, 200, 200));
 					isStarted = false;
