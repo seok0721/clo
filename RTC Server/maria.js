@@ -1,9 +1,5 @@
-/*
- * Import Module
- */
-var Log = require('./logger.js');
 var inspect = require('util').inspect;
-var client = new (require('mariasql'));
+var maria = new (require('mariasql'));
 var config = {
   host: '127.0.0.1',
   user: 'root',
@@ -11,22 +7,9 @@ var config = {
   db: 'clo'
 };
 
-/*
- * Static Constant
- */
-var SUCCESS = 0;
-var FAILURE = 1;
-var TAG = 'Maria DB'
-
-/*
- * Global Function
- */
-function log(message) {
-  console.log('Maria: ' + message);
-}
-
 function existBroadcaster(email, pwd, callback) {
-  client.query('SELECT 1 FROM TBL_BROADCASTER WHERE EMAIL = :email AND PASSWD = :pwd', {
+  maria.query(' SELECT 1 FROM TBL_BROADCASTER'
+             + '  WHERE EMAIL = :email AND PASSWD = :pwd', {
     'email': email,
     'pwd': pwd
   }).on('result', function(ret) {
@@ -38,66 +21,64 @@ function existBroadcaster(email, pwd, callback) {
   });
 }
 
-function read_broadcaster(email, pwd, callback) {
-  client.query(' SELECT MAX(EMAIL)    email'
-             + '      , MAX(PASSWD)   pwd'
-             + '      , MAX(NAME)     name'
-             + '      , MAX(IMG_DATA) img'
-             + '   FROM TBL_BROADCASTER'
-             + '  WHERE EMAIL  = :email'
-             + '    AND PASSWD = :pwd', {
+function readBroadcaster(email, pwd, callback) {
+  maria.query(' SELECT MAX(EMAIL)    email'
+            + '      , MAX(PASSWD)   pwd'
+            + '      , MAX(NAME)     name'
+            + '      , MAX(IMG_DATA) img'
+            + '   FROM TBL_BROADCASTER'
+            + '  WHERE EMAIL  = :email'
+            + '    AND PASSWD = :pwd', {
     'email': email,
     'pwd': pwd
   }).on('result', function(ret) {
     ret.on('error', function(err) {
-      Log.e(TAG + '.read_broadcaster', err);
       callback(err);
+      // console.log('Maria.readBroadcaster, Error: ' + err);
     }).on('row', function(data) {
-      Log.i(TAG + '.read_broadcaster', data.email + ',' + data.pwd + ',' + data.name);
-      callback(null, data.email ? data : {});
+      callback(null, (data.email) ? data : null);
+      delete data.img;
+      // console.log('Maria.readBroadcaster, ' + inspect(data));
     });
   });
 }
 
 function createBroadcaster(data, callback) {
   var email = data.email;
-  var pwd   = data.pwd;
-  var name  = data.name;
-  var img   = data.img;
+  var pwd = data.pwd;
+  var name = data.name;
+  var img = data.img;
 
-  client.query('INSERT INTO TBL_BROADCASTER VALUES ( :email, :pwd , :name, :img )', {
+  maria.query(' INSERT INTO TBL_BROADCASTER VALUES'
+             + ' ( :email, :pwd , :name, :img )', {
     'email': email,
-    'pwd':   pwd,
-    'name':  name,
-    'img':   img
+    'pwd': pwd,
+    'name': name,
+    'img': img
   }).on('result', function(ret) {
     ret.on('error', function(err) {
       callback(err);
+      // console.log('Maria.createBroadcaster, Error: ' + err);
     }).on('end', function(meta) {
       callback(null, (meta.numRows == 1) ? true : false);
+      // console.log('Maria.createBroadcaster, Result: ' + ((meta.numRows == 1) ? true : false));
     });
   });
 }
 
-/*
- * Main Routine
- */
-client
-.on('connect', function() {
-  Log.i(TAG, 'ready');
-})
-.on('error', function(err) {
-  Log.i(TAG, 'Error, ' + err);
-})
-.on('close', function(err) {
-  Log.i(TAG, 'Close, ' + err);
+maria.on('connect', function() {
+  console.log('Maria.connect');
+}).on('error', function(err) {
+  console.log('Maria.error, Error: ' + err);
+}).on('close', function(err) {
+  console.log('Maria.close' + (err ? (', Error: ' + err) : ''));
 });
 
-client.connect(config);
+maria.connect(config);
 
 /*
  * Export Symbol
  */
 module.exports.existBroadcaster = existBroadcaster;
-module.exports.read_broadcaster = read_broadcaster;
 module.exports.createBroadcaster = createBroadcaster;
+module.exports.readBroadcaster = readBroadcaster;
