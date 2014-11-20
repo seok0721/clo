@@ -23,7 +23,7 @@ import android.widget.Toast;
 public class SignInActivity extends Activity implements SignInView, ActivityEventHandler {
 
 	private static final String TAG = SignInActivity.class.getSimpleName();
-	private static final String EVENT = "signin";
+	private static final String EVENT = "signIn";
 	private static Boolean waitForDisconnect = true;
 	private Button btnSignIn;
 	private TextView txtSignUp;
@@ -53,43 +53,52 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 
 		if(waitForDisconnect) {
 			SocketService.getInstance().stop();
+			finish();
 		}
+	}
 
-		finish();
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		waitForDisconnect = true;
 	}
 
 	@Override
 	public void onMessage(JSONObject data) {
-		Log.i(TAG, "onMessage");
-
-		int ret = EventResult.FAILURE;
-		String email = null;
-		String name = null;
-		String encodedPortrait = null;
-
 		try {
-			ret = data.getInt("ret");
-			email = data.getString("email");
-			name = data.getString("name");
-			encodedPortrait = data.getString("img");
-		} catch(Exception e) {}
+			int ret = data.getInt("ret");
 
-		if(ret == EventResult.FAILURE) {
-			Toast.makeText(this, "로그인에 실패하였습니다.", Toast.LENGTH_SHORT).show();
-			return;
+			if(ret == EventResult.FAILURE) {
+				Toast.makeText(this, "로그인에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+				return;
+			}
+
+			String email = data.getString("email");
+			String name = data.getString("name");
+			String encodedPortrait = data.getString("img");
+
+			if(ret == EventResult.FAILURE) {
+				Toast.makeText(this, "로그인에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+				Log.i(TAG, "로그인에 실패하였습니다.");
+				return;
+			}
+
+			waitForDisconnect = false;
+
+			Global.setEmail(email);
+			Global.setName(name);
+			Global.setThumbnail(encodedPortrait);
+
+			startActivity(new Intent(this, ReadyActivity.class));
+			finish();
+
+			Toast.makeText(this, "로그인에 성공하였습니다.", Toast.LENGTH_SHORT).show();
+			Log.i(TAG, "로그인에 성공하였습니다.");
+		} catch(Exception e) {
+			Toast.makeText(this, "서버에 요청하는 도중 오류가 발생하였습니다. 앱을 다시 실행시키세요.", Toast.LENGTH_SHORT).show();
+			Log.e(TAG, e.getMessage(), e);
 		}
-
-		waitForDisconnect = false;
-
-		Intent intent = new Intent(this, ReadyActivity.class);
-		intent.putExtra("name", name);
-		intent.putExtra("img", encodedPortrait);
-		startActivity(intent);
-
-		Global.setChannel(email);
-		finish();
-
-		Toast.makeText(this, "로그인에 성공하였습니다.", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -120,5 +129,9 @@ public class SignInActivity extends Activity implements SignInView, ActivityEven
 	@Override
 	public Activity getActivity() {
 		return this;
+	}
+
+	public static void setWaitForDisconnection(boolean waitForDisconnect) {
+		SignInActivity.waitForDisconnect = waitForDisconnect;
 	}
 }

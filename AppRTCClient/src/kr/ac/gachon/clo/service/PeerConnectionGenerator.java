@@ -2,7 +2,7 @@ package kr.ac.gachon.clo.service;
 
 import java.util.Calendar;
 
-import kr.ac.gachon.clo.handler.HandshakeHandler;
+import kr.ac.gachon.clo.handler.OfferHandler;
 import kr.ac.gachon.clo.observer.PeerConnectionObserver;
 import kr.ac.gachon.clo.webrtc.IceServers;
 import kr.ac.gachon.clo.webrtc.SrtpMediaConstraints;
@@ -27,7 +27,7 @@ public class PeerConnectionGenerator {
 	private static final String TAG = PeerConnectionGenerator.class.getSimpleName();
 	private static PeerConnectionGenerator instance;
 	private PeerConnectionFactory factory;
-	private DeviceCapturer2 deviceCapturer;
+	private DeviceCapturer deviceCapturer;
 
 	public static void setup() {
 		instance = new PeerConnectionGenerator();
@@ -40,7 +40,7 @@ public class PeerConnectionGenerator {
 	public PeerConnection createPeerConnection() {
 		Log.i(TAG, "커넥션을 생성합니다.");
 
-		HandshakeHandler handler = new HandshakeHandler();
+		OfferHandler handler = new OfferHandler();
 		PeerConnectionObserver observer = new PeerConnectionObserver();
 		PeerConnection connection = factory.createPeerConnection(new IceServers(), new SrtpMediaConstraints(), observer);
 		connection.addStream(deviceCapturer.getMediaStream(), new MediaConstraints());
@@ -55,12 +55,12 @@ public class PeerConnectionGenerator {
 
 	private PeerConnectionGenerator() {
 		factory = new PeerConnectionFactory();
-		deviceCapturer = new DeviceCapturer2(factory);
+		deviceCapturer = new DeviceCapturer(factory);
 	}
 
-	private static class DeviceCapturer2 {
+	private static class DeviceCapturer {
 
-		private static final String TAG = DeviceCapturer2.class.getSimpleName();
+		private static final String TAG = DeviceCapturer.class.getSimpleName();
 		private static final String DEVICE_NAME = "Camera 0, Facing back, Orientation 90";
 		private static final String LABEL = "CLO";
 		private VideoRenderer videoRenderer;
@@ -73,7 +73,7 @@ public class PeerConnectionGenerator {
 		private Callbacks videoRendererCallback;
 		private long serialNumber;
 
-		public DeviceCapturer2(PeerConnectionFactory factory) {
+		public DeviceCapturer(PeerConnectionFactory factory) {
 			Log.i(TAG, "새 멀티미디어 스트림을 생성합니다.");
 
 			videoCapturer = VideoCapturer.create(DEVICE_NAME);

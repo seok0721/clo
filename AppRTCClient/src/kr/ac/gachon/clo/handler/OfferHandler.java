@@ -13,27 +13,27 @@ import org.webrtc.SessionDescription.Type;
 
 import android.util.Log;
 
-public class HandshakeHandler implements EventHandler {
+public class OfferHandler implements EventHandler {
 
-	private static final String TAG = HandshakeHandler.class.getSimpleName();
-	private static final String EVENT = "handshake";
-	private String viewer;
+	private static final String TAG = OfferHandler.class.getSimpleName();
+	private static final String EVENT = "offer";
+	private String socketId;
 
 	@Override
 	public void onMessage(JSONObject data) {
 		try {
-			String channel = data.getString("channel");
-			String viewer = data.getString("viewer");
+			String email = data.getString("email");
+			String socketId = data.getString("socketId");
 			String sdp = data.getString("sdp");
 
-			if(!Global.getChannel().equals(channel)) {
+			if(!Global.getEmail().equals(email)) {
 				return;
 			}
 
-			this.viewer = viewer;
+			this.socketId = socketId;
 
 			SocketService.getInstance().removeEventHandler(this);
-			SocketService.getInstance().addEventHandler(new HandshakeHandler());
+			SocketService.getInstance().addEventHandler(new OfferHandler());
 
 			PeerConnection connection = PeerConnectionGenerator.getInstance().createPeerConnection();
 			connection.setRemoteDescription(new RemoteOfferObserver(connection, this), new SessionDescription(Type.OFFER, sdp));
@@ -48,14 +48,14 @@ public class HandshakeHandler implements EventHandler {
 	}
 
 	public void handshake(String sdp) {
-		SocketService.getInstance().handshake(viewer, sdp);
+		SocketService.getInstance().answer(socketId, sdp);
 	}
 
 	public String getViewer() {
-		return viewer;
+		return socketId;
 	}
 
 	public void setViewer(String viewer) {
-		this.viewer = viewer;
+		this.socketId = viewer;
 	}
 }

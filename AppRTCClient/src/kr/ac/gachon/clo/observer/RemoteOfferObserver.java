@@ -1,6 +1,6 @@
 package kr.ac.gachon.clo.observer;
 
-import kr.ac.gachon.clo.handler.HandshakeHandler;
+import kr.ac.gachon.clo.handler.OfferHandler;
 
 import org.webrtc.MediaConstraints;
 import org.webrtc.PeerConnection;
@@ -14,7 +14,7 @@ public class RemoteOfferObserver implements SdpObserver {
 	private static final String TAG = RemoteOfferObserver.class.getSimpleName();
 	private PeerConnection connection;
 
-	public RemoteOfferObserver(PeerConnection connection, HandshakeHandler handler) {
+	public RemoteOfferObserver(PeerConnection connection, OfferHandler handler) {
 		this.connection = connection;
 	}
 

@@ -1,5 +1,6 @@
 package kr.ac.gachon.clo.handler;
 
+import kr.ac.gachon.clo.Global;
 import kr.ac.gachon.clo.activity.ReadyActivity;
 import kr.ac.gachon.clo.service.SocketService;
 import android.view.View;
@@ -28,6 +29,9 @@ public class OnAirButtonHandler implements Runnable, OnClickListener {
 			return;
 		}
 
-		SocketService.getInstance().createRoom(title);
+		Global.setTitle(activity.getTitleName().getText().toString());
+		Global.setAddress(activity.getAddress().getText().toString());
+
+		SocketService.getInstance().createChannel(title);
 	}
 }

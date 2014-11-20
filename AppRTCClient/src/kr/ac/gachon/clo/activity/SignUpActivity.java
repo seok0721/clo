@@ -28,7 +28,7 @@ import android.widget.Toast;
 public class SignUpActivity extends Activity implements SignUpView, ActivityEventHandler {
 
 	private static final String TAG = SignUpActivity.class.getSimpleName();
-	private static final String EVENT = "signup";
+	private static final String EVENT = "signUp";
 	private ImageView imgThumbnail;
 	private Bitmap bitThumbnail;
 	private EditText edtEmail;
@@ -75,23 +75,30 @@ public class SignUpActivity extends Activity implements SignUpView, ActivityEven
 		cursor.close();
 
 		bitThumbnail = getScaledBitmap(thumbnailPath, 300, 300);
-		imgThumbnail.setImageBitmap(BitmapUtils.getCircularBitmap(bitThumbnail));
+
+		if(bitThumbnail != null) {
+			imgThumbnail.setImageBitmap(BitmapUtils.getCircularBitmap(bitThumbnail));
+		} else {
+			imgThumbnail.setImageBitmap(null);
+		}
 	}
 
 	@Override
 	public void onMessage(JSONObject data) {
-		int ret = EventResult.FAILURE;
-
 		try {
-			ret = data.getInt("ret");
-		} catch(Exception e) {}
+			if(data.getInt("ret") == EventResult.FAILURE) {
+				Toast.makeText(this, "회원 가입에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+				Log.i(TAG, "회원 가입에 실패하였습니다.");
+				return;
+			}
 
-		String message = (ret == EventResult.SUCCESS) ? "회원 가입이 정상적으로 완료되었습니다." : "회원 가입에 실패하였습니다.";
-		Log.i(TAG, message);
-
-		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-
-		finish();
+			Toast.makeText(this, "회원 가입이 정상적으로 완료되었습니다.", Toast.LENGTH_SHORT).show();
+			Log.i(TAG, "회원 가입이 정상적으로 완료되었습니다.");
+			finish();
+		} catch(Exception e) {
+			Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+			Log.e(TAG, e.getMessage(), e);
+		}
 	}
 
 	private Bitmap getScaledBitmap(String picturePath, int width, int height) {

@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import kr.ac.gachon.clo.Global;
 import kr.ac.gachon.clo.R;
 import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.event.EventResult;
@@ -37,7 +38,7 @@ import android.widget.Toast;
 public class ReadyActivity extends Activity implements ActivityEventHandler, ReadyView {
 
 	private static final String TAG = ReadyActivity.class.getSimpleName();
-	private static final String EVENT = "create";
+	private static final String EVENT = "createChannel";
 	private static Boolean waitForDisconnect = true;
 	private TextView txtAddress;
 	private TextView txtName;
@@ -67,10 +68,7 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 		SocketService.getInstance().addEventHandler(this);
 
-		super.onStart();
-
-		String encodedImage = getIntent().getStringExtra("img");
-		byte[] decodedBytes = Base64.decode(encodedImage, 0);
+		byte[] decodedBytes = Base64.decode(Global.getThumbnail(), 0);
 		Bitmap bitmapImage = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
 
 		try {
@@ -128,35 +126,26 @@ public class ReadyActivity extends Activity implements ActivityEventHandler, Rea
 
 	@Override
 	public void onMessage(JSONObject data) {
-		String message;
-
 		if(!waitForDisconnect) {
 			return;
 		}
 
 		try {
 			if(data.getInt("ret") == EventResult.FAILURE) {
-				throw new Exception();
+				Toast.makeText(this, "채널을 만드는데 실패하였습니다.", Toast.LENGTH_SHORT).show();
+				return;
 			}
 
 			waitForDisconnect = false;
 
 			Intent intent = new Intent(this, ShootingActivity.class);
-			intent.putExtra("name", getName().getText().toString());
-			intent.putExtra("title", getTitleName().getText().toString());
-			intent.putExtra("address", getAddress().getText().toString());
 			startActivity(intent);
 
-			message = "방송을 시작합니다.";
+			Toast.makeText(this, "방송을 시작합니다.", Toast.LENGTH_SHORT).show();
 		} catch(Exception e) {
+			Toast.makeText(this, "방을 만드는 도중 오류가 발생하였습니다.", Toast.LENGTH_SHORT).show();
 			Log.e(TAG, e.getMessage(), e);
-
-			message = "방을 만드는 도중 오류가 발생하였습니다.";
 		}
-
-		Log.i(TAG, message);
-
-		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
 	// Geocoder를 이용해서 latitude와 longitude를 통해 주소를 얻는 부분
