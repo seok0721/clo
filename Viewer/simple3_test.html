@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>:: Cielo ::</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/js/socket.io.min.js"></script>
+    <script type="text/javascript" src="/js/simple3.js"></script>
+    
+    <!-- import for Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/mystyle.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/js/socket.io.min.js"></script>
+    <script type="text/javascript" src="/js/index.js"></script>
+    
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+  </head>
+  <body>
+	  <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">CLO</a>
+        </div>
+        
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="home.html"><span class="glyphicon glyphicon-home"></span>&nbsp;Home</a></li>
+            <li><a href="viewer.html"><span class="glyphicon glyphicon-map-marker"></span>&nbsp;CLO</a></li>
+            <li class="active"><a href="simple3_test.html"><span class="glyphicon glyphicon-cloud"></span>&nbsp;Test</a></li>
+          </ul>
+            
+            <!--right side -->
+            <ul class="nav navbar-nav navbar-right">
+	            <form class="navbar-form navbar-left" role="search">
+			      <div class="form-group">
+			        <input type="text" class="form-control" placeholder="Location">
+			      </div>
+			      <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"></span>&nbsp;Search</button>
+			    </form>
+			</ul>
+			<!-- /right side -->
+
+        </div><!--/.nav-collapse -->
+      </div>
+    </div><!-- navbar navbar-default navbar-fixed-top -->
+    <br />
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <strong>Remote Control</strong>
+            </div>
+            <div class="panel-body">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for ="txtChannel1" class="col-sm-2 control-label">Screen 1</label>
+                  <div class="col-sm-10">
+                    <input id="txtChannel1" type="text" class="form-control" placeholder="RoomId" />
+                  </div>
+                </div>
+                <button id="btnWatch1" type="button">Watch</button>
+              </form>
+              <hr />
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for ="txtChannel2" class="col-sm-2 control-label">Screen 2</label>
+                  <div class="col-sm-10">
+                    <input id="txtChannel2" type="text" class="form-control" placeholder="RoomId" />
+                  </div>
+                </div>
+                <button id="btnWatch2" type="button">Watch</button>
+              </form>
+              <hr />
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for ="txtChannel3" class="col-sm-2 control-label">Screen 3</label>
+                  <div class="col-sm-10">
+                    <input id="txtChannel3" type="text" class="form-control" placeholder="RoomId" />
+                  </div>
+                </div>
+                <button id="btnWatch3" type="button">Watch</button>
+              </form>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <strong>Chatting</strong>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <strong>Broadcaster Camera</strong>
+            </div>
+            <div id="divScreen" class="panel-body">
+              <label class="col-sm-3">Screen 1</label>
+              <div class="col-sm-9">
+                <video id="vidRemote1" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>
+              </div>
+              <hr />
+              <label class="col-sm-3">Screen 2</label>
+              <div class="col-sm-9">
+                <video id="vidRemote2" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>
+              </div>
+              <hr />
+              <label class="col-sm-3">Screen 3</label>
+              <div class="col-sm-9">
+                <video id="vidRemote3" autoplay="true" style="width:320px; height:240px; border: 1px solid #e8e8e8;"></video>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+  </body>
+</html>

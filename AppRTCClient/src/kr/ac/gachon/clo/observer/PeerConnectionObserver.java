@@ -1,8 +1,7 @@
 package kr.ac.gachon.clo.observer;
 
-import kr.ac.gachon.clo.handler.HandshakeHandler;
+import kr.ac.gachon.clo.handler.OfferHandler;
 import kr.ac.gachon.clo.service.PeerConnectionPool;
-import kr.ac.gachon.clo.service.SocketService;
 
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
@@ -19,9 +18,9 @@ public class PeerConnectionObserver implements Observer {
 
 	private static final String TAG = PeerConnectionObserver.class.getSimpleName();
 	private PeerConnection connection;
-	private HandshakeHandler handler;
+	private OfferHandler handler;
 
-	public void setPeerConnection(PeerConnection connection, HandshakeHandler handler) {
+	public void setPeerConnection(PeerConnection connection, OfferHandler handler) {
 		this.connection = connection;
 		this.handler = handler;
 	}

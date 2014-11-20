@@ -4,9 +4,10 @@ import java.util.ArrayList;
 
 import kr.ac.gachon.clo.Global;
 import kr.ac.gachon.clo.R;
+import kr.ac.gachon.clo.event.ActivityEventHandler;
 import kr.ac.gachon.clo.handler.CameraViewHandler;
 import kr.ac.gachon.clo.handler.CommentButtonHandler;
-import kr.ac.gachon.clo.handler.HandshakeHandler;
+import kr.ac.gachon.clo.handler.OfferHandler;
 import kr.ac.gachon.clo.handler.InfoButtonHandler;
 import kr.ac.gachon.clo.handler.PlayButtonHandler;
 import kr.ac.gachon.clo.handler.ViewerCountHandler;
@@ -15,6 +16,8 @@ import kr.ac.gachon.clo.service.SocketService;
 import kr.ac.gachon.clo.view.ShootingView;
 import kr.ac.gachon.clo.webrtc.CameraView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.webrtc.PeerConnectionFactory;
 
 import android.app.Activity;
@@ -30,10 +33,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class ShootingActivity extends Activity implements ShootingView {
+public class ShootingActivity extends Activity implements ShootingView, ActivityEventHandler {
 
 	private static final String TAG = ShootingActivity.class.getSimpleName();
+	private static final String EVENT = "chat";
 	private CameraView cameraView;
 	private LinearLayout  pnlInfo;
 	private ListView pnlComment;
@@ -50,6 +55,15 @@ public class ShootingActivity extends Activity implements ShootingView {
 	private ArrayList<MyItem> arItem;
 
 	@Override
+	public void onMessage(JSONObject data) {
+		try {
+			Toast.makeText(this, data.getString("message"), Toast.LENGTH_SHORT).show();
+		} catch(JSONException e) {
+			Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_shooting);
@@ -62,7 +76,7 @@ public class ShootingActivity extends Activity implements ShootingView {
 
 		PeerConnectionGenerator.setup(); // #3
 
-		SocketService.getInstance().addEventHandler(new HandshakeHandler());
+		SocketService.getInstance().addEventHandler(new OfferHandler());
 		ViewerCountHandler.getInstance().setShootingActivity(this);
 
 		btnComment = (Button)findViewById(R.id.btn_comment);
@@ -81,10 +95,10 @@ public class ShootingActivity extends Activity implements ShootingView {
 		txtUser.setText(getIntent().getStringExtra("name"));
 
 		txtTitle = (TextView)findViewById(R.id.txt_title);
-		txtTitle.setText(Global.getChannel());
+		txtTitle.setText(Global.getEmail());
 
 		txtHudTitle = (TextView)findViewById(R.id.shootTitle);
-		txtHudTitle.setText(Global.getChannel());
+		txtHudTitle.setText(Global.getEmail());
 
 		txtAddress = (TextView)findViewById(R.id.txt_location);
 		txtAddress.setText(getIntent().getStringExtra("address"));
@@ -103,6 +117,8 @@ public class ShootingActivity extends Activity implements ShootingView {
 
 		MyAdapter = new MyListAdapter(this, R.layout.list_form, arItem);
 		pnlComment.setAdapter(MyAdapter);
+
+		SocketService.getInstance().addEventHandler(this);
 	}
 
 	@Override
@@ -111,7 +127,7 @@ public class ShootingActivity extends Activity implements ShootingView {
 
 		Log.i(TAG, "onDestroy");
 
-		SocketService.getInstance().destroy();
+		SocketService.getInstance().removeChannel();
 
 		PeerConnectionGenerator.getInstance().close();
 	}
@@ -205,5 +221,15 @@ public class ShootingActivity extends Activity implements ShootingView {
 	@Override
 	public TextView getClientCount() {
 		return txtClientCount;
+	}
+
+	@Override
+	public String getEvent() {
+		return EVENT;
+	}
+
+	@Override
+	public Activity getActivity() {
+		return this;
 	}
 }

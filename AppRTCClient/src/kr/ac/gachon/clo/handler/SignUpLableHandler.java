@@ -21,6 +21,8 @@ public class SignUpLableHandler implements Runnable, OnClickListener {
 
 	@Override
 	public void run() {
+		SignInActivity.setWaitForDisconnection(false);
+
 		Intent intent = new Intent(activity, SignUpActivity.class);
 		activity.startActivity(intent);
 	}
