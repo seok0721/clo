@@ -8,7 +8,7 @@ $(function() {
       'url': 'stun:211.189.20.193:3478'
     }]
   };
-  var connectionArray = [ null, null, null, null, null ];
+  var connectionMap = {};
   var SUCCESS = 0;
   var FAILURE = 1;
   var btnChannel = $('#btnChannel');
@@ -19,6 +19,72 @@ $(function() {
   var lstMessage4 = $('#divMessageList4');
   var socket = io.connect(nodeServer);
   var waitForReceiveChannelList = false;
+
+  function connect(email) {
+    if(Object.keys(connectionMap).length == 5) {
+      alert('비디오를 재생할 공간이 없습니다.');
+    }
+
+    var conn = new RTCPeerConnection(iceServers); 
+    conn.email = email;
+    conn.video = $('<video autoplay="true" style="width:100%; height:100%"></video>')[0];
+    conn.onicecandidate = function(e) {
+      if(conn.iceGatheringState == 'complete') {
+        socket.emit('offer', {
+          'email': email,
+          'sdp': conn.localDescription.sdp
+        });
+        return;
+      }
+
+      if(e.candidate) {
+        conn.addIceCandidate(new RTCIceCandidate(e.candidate));
+      }
+    };
+    conn.onaddstream = function(e) {
+      conn.video.src = URL.createObjectURL(e.stream);
+    };
+    conn.onsignalingstatechange = function(e) {
+      if(conn.signalingState == 'closed') {
+        conn.video.pause();
+        conn.container.empty();
+        alert('방송이 종료되었습니다.');
+      }
+    };
+
+    connectionMap[email] = conn;
+
+    var i = 0;
+
+    while(i < 5) {
+      var container = $('#divVideo' + i); 
+
+      if(container.children().length == 0) {
+        container.append(conn.video);
+        conn.container = container;
+        alert('비디오 추가');
+        break;
+      }
+
+      i++;
+    }
+
+    if(i == 5) {
+      alert('비디오가 들어갈 빈 자리가 없습니다.');
+      // TODO 예외 처리
+    }
+
+    conn.createOffer(function(desc) {
+      conn.setLocalDescription(desc);
+    }, function(err) {
+      alert(err);
+    }, {
+      mandatory: {
+        OfferToReceiveAudio: true,
+        OfferToReceiveVideo: true
+      }
+    });
+  }
 
   socket.on('enterChannel', function(data) {
     var ret = data.ret;
@@ -41,8 +107,12 @@ $(function() {
 
     for(var channel in data.channelList) {
       var broadcaster = JSON.parse(data.channelList[channel]);
-//      var link = $('<a href="javascript:watch
+      var link = $('<a></a>');
       var card = $('<p></p>');
+
+      link.click(function() {
+        connect(channel);
+      });
 
       card.append($('<img style="border:1px solid #e8e8e8; width:5em;height:5em;" src="data:image/png;base64,' + broadcaster.img + '" />'));
       card.append($('<br />'));
@@ -50,14 +120,15 @@ $(function() {
       card.append($('<br />'));
       card.append($('<span></span>').html('방송자: ' + atob(broadcaster.name)));
 
-      lstChannel.append(card);
+      link.append(card);
+      lstChannel.append(link);
       lstChannel.append($('<hr />'));
 
       count++;
     }
 
     if(count == 0) {
-      alert('방송중인 채널이 없습니다.');
+      console.log('방송중인 채널이 없습니다.');
     }
 
     waitForReceiveChannelList = false;
@@ -83,9 +154,6 @@ $(function() {
     var email = data.email;
     var sdp = data.sdp;
     var conn = connectionMap[email];
-    console.log(data);
-    console.log(email);
-    console.log(conn);
 
     if(conn) {
       conn.setRemoteDescription(new RTCSessionDescription({
@@ -105,52 +173,6 @@ $(function() {
     // TODO Update UI
     console.log('소켓: ' + socketId + ', 채널: ' + email + ', 메시지: ' + message);
   });
-
-  function connect(email) {
-    for(var i in connectionArray) {
-      if(connectionArray[i] != null) {
-        continue;
-      }
-
-      var conn = new RTCPeerConnection(iceServers); 
-      conn.email = email;
-      conn.video = $('<video autoplay="true"></video>');
-      conn.onicecandidate = function(e) {
-        if(conn.iceGatheringState != 'complete') {
-          conn.addIceCandidate(new RTCIceCandidate(e.candidate));
-        } else {
-          socket.emit('offer', {
-            'email': email,
-            'sdp': conn.localDescription.sdp
-          });
-        }
-      };
-      conn.onaddstream = function(e) {
-        video.src = URL.createObjectURL(e.stream);
-      };
-      conn.onsignalingstatechange = function(e) {
-        if(conn.signalingState == 'closed') {
-          video.pause();
-          alert('방송이 종료되었습니다.');
-        }
-      };
-
-      connectionArray[i] = conn;
-
-      conn.createOffer(function(desc) {
-        conn.setLocalDescription(desc);
-      }, function(err) {
-        alert(err);
-      }, {
-        mandatory: {
-          OfferToReceiveAudio: true,
-          OfferToReceiveVideo: true
-        }
-      });
-    }
-
-    alert('비디오를 재생할 공간이 없습니다.');
-  }
 
   function watch(email, videoElementId, messageTextBoxId, sendMessageButtonId) {
     var txtMessage = $('#' + messageTextBoxId);
