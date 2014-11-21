@@ -42,7 +42,7 @@ function existSession(email, callback) {
   });
 }
 
-function createChannel(email, name, title, img, callback) {
+function createChannel(email, name, img, title, callback) {
   redis.hget('broadcaster', email, function(err, data) {
     if(err) {
       callback(err);
@@ -96,7 +96,8 @@ function getChannelList(callback) {
       return;
     }
 
-    callback(null, JSON.parse(data));
+    // callback(null, JSON.parse(data));
+    callback(null, data);
   });
 }
 

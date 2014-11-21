@@ -221,6 +221,19 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
+  socket.on('getChannelList', function(data) {
+    redis.getChannelList(function(err, data) {
+      if(err) {
+        emitFailure(socket, 'getChannelList', err);
+        return;
+      }
+
+      emitSuccess(socket, 'getChannelList', {
+        'channelList': data
+      });
+    });
+  });
+
   socket.on('offer', function(data) {
     var email = data.email;
     var sdp = data.sdp;
