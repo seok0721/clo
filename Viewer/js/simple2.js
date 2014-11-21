@@ -40,6 +40,7 @@ $(function() {
   var txtChannel1 = $('#txtChannel1');
   var txtChannel2 = $('#txtChannel2');
 
+    console.log(111111111);
   btnWatch1.click(function(e) {
     var channel = txtChannel1.val();
 
@@ -49,9 +50,16 @@ $(function() {
       return;
     }
 
+<<<<<<< HEAD
+    var conn = new RTCPeerConnection(ICE_SERVERS);  
+    console.log(1);
+    var socket = io.connect(NODE_SERVER);
+    console.log(2);
+=======
     var email = channel;
     var conn = new RTCPeerConnection(ICE_SERVERS);  
     var socket = io.connect(NODE_SERVER);
+>>>>>>> d5e1121af47217638ec870b0058894b665660d9b
     var vidRemote = $('#vidRemote1')[0];
 
     conn.onicecandidate = function(e) {
@@ -138,7 +146,10 @@ $(function() {
       return;
     }
 
+<<<<<<< HEAD
+=======
     var email = channel;
+>>>>>>> d5e1121af47217638ec870b0058894b665660d9b
     var conn = new RTCPeerConnection(ICE_SERVERS);
     var socket = io.connect(NODE_SERVER);
     var vidRemote = $('#vidRemote2')[0];
@@ -160,9 +171,12 @@ $(function() {
 
     socket.on('connect', connect_handler);
     socket.on('offer', offer_handler);
+<<<<<<< HEAD
+=======
     socket.on('error', function(e) {
       console.log(e);
     });
+>>>>>>> d5e1121af47217638ec870b0058894b665660d9b
 
     function connect_handler() {
       console.log('connect, join channel:' + email);
