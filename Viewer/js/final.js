@@ -21,11 +21,21 @@ $(function() {
   var socket = io.connect(nodeServer);
   var waitForReceiveChannelList = false;
 
-  socket.topChatListId = 0;
+  socket.topChatEmail = 0;
   socket.containerMap = {};
   socket.connectionMap = {};
   socket.chatMap = {};
   socket.videoMap = {};
+
+  function swapChatPanel(email) {
+    var chatPanel1 = $('#divChatList' + socket.chatMap[socket.topChatEmail]);
+    var chatPanel2 = $('#divChatList' + socket.chatMap[email];
+
+    chatPanel1.hide();
+    chatPanel2.show();
+
+    socket.topChatEmail = email;
+  }
 
   function sortVideo() {
     for(var i = 1; i < 5; i++) {
@@ -43,14 +53,17 @@ $(function() {
       $('#divContainer0 video').first()[0].play();
       $('#divContainer0').attr('email', email);
 
-      socket.containerMap[email] = i;
+      socket.containerMap[email] = 0;
 
       $('#divContainer0 a').unbind('click');
       $('#divContainer0 a').click(function() {
         onClickVideo(0);
       });
 
-      socket.topChatListId = socket.chatMap[email];
+      // socket.topChatEmail = socket.chatMap[email];
+//      console.log('채팅맵!!! ' + email);
+//      console.log('채팅맵!!! ' + socket.chatMap[email]);
+      swapChatPanel(email);
       break;
     }
   }
@@ -58,23 +71,31 @@ $(function() {
   function onClickVideo(index) {
     console.log(index);
     if(index == 0) { // 큰 화면인 경우
-      if(!confirm('시청중인 방송을 끄시겠습니까?')) {
+      var email = $('#divContainer0').attr('email');
+
+      if(!confirm(email + ' 시청중인 방송을 끄시겠습니까?')) {
         return;
       }
 
-      var email = $('#divContainer0').attr('email');
-
       socket.connectionMap[email].close();
     } else { // 작은 화면인 경우
+      // 비디오 스왑
       var anchor = $('#divContainer' + index + ' a').first();
-
       $('#divContainer' + index).empty();
       $('#divContainer0 a').first().appendTo('#divContainer' + index);
       anchor.appendTo('#divContainer0');
 
-      var email = $('#divContainer' + index).attr('email');
-      $('#divContainer' + index).attr('email', $('#divContainer0').attr('email'));
-      $('#divContainer0').attr('email', email);
+      // 이메일 속성 스왑
+      var email1 = $('#divContainer' + index).attr('email');
+      var email2 = $('#divContainer0').attr('email');
+
+//      socket.connectionMap[email1].email = email2;
+//      socket.connectionMap[email2].email = email1;
+
+      $('#divContainer' + index).attr('email', email2);
+      $('#divContainer0').attr('email', email1);
+
+      console.log(socket.containerMap);
 
       $('#divContainer' + index + ' video').first()[0].play();
       $('#divContainer0 video').first()[0].play();
@@ -89,7 +110,12 @@ $(function() {
         onClickVideo(0);
       });
 
-      socket.topChatListId = socket.chatMap[email];
+      // 컨테이너 스왑
+      socket.containerMap[email1] = 0;
+      socket.containerMap[email2] = index;
+
+      // socket.topChatEmail = socket.chatMap[email];
+      swapChatPanel(email1);
     }
   }
 
@@ -128,10 +154,6 @@ $(function() {
 
     conn.onsignalingstatechange = function(e) {
       if(conn.signalingState == 'closed') {
-        console.log(email);
-        console.log(socket.containerMap[conn.email]);
-        console.log($('#divConatiner' + socket.containerMap[conn.email]));
-
         $('#divContainer' + socket.containerMap[conn.email]).empty();
         $('#divContainer' + socket.containerMap[conn.email]).removeAttr('email');
         delete socket.containerMap[conn.email];
@@ -140,7 +162,7 @@ $(function() {
         console.log($('#divChatList' + socket.chatMap[conn.email]));
 
         $('#divChatList' + socket.chatMap[conn.email]).empty();
-        delete socket.chatMap[conn.email];
+//        delete socket.chatMap[conn.email];
 
         sortVideo();
 
@@ -152,6 +174,10 @@ $(function() {
         delete socket.videoMap[conn.email];;
 
         console.log(conn.email + ' 방송이 종료되었습니다.');
+        console.log(socket.connectionMap);
+        console.log(socket.containerMap);
+        console.log(socket.videoMap);
+        console.log(socket.chatMap);
       }
     };
 
@@ -161,11 +187,19 @@ $(function() {
     for(var i = 0; i < 5; i++) {
       var container = $('#divContainer' + i); 
 
+      console.log('loop');
+      console.log(container.children().length);
+
       if(container.children().length == 0) {
+        socket.containerMap[conn.email] = i;
+
+        console.log('select number');
+        console.log(socket.containerMap);
+
         var anchor = $('<a></a>');
         anchor.append(socket.videoMap[conn.email]);
         anchor.click(function() {
-          onClickVideo(i);
+          onClickVideo(socket.containerMap[conn.email]);
         });
 
         console.log('awefawef');
@@ -174,7 +208,6 @@ $(function() {
 
         container.append(anchor);
         container.attr('email', conn.email);
-        socket.containerMap[conn.email] = i;
 
         console.log('connect');
         console.log(socket.containerMap[conn.email]);
@@ -185,7 +218,11 @@ $(function() {
 
     for(var i = 0; i < 5; i++) {
       if($('#divChatList' + i).children().length == 0) {
-        socket.chatMap[email] = i;
+        $('#divChatList' + i).append($('<span></span>'));
+        socket.chatMap[conn.email] = i;
+        if(i == 0) {
+          socket.topChatEmail = conn.email;
+        }
         break;
       }
     }
@@ -464,10 +501,10 @@ $(function() {
       return;
     }
 
-    console.log(socket.topChatListId);
+    console.log(socket.topChatEmail);
 
-//    $('#divChatList' + socket.topChatListId).append(createChatBox(message, true));
-    $('#divChatList' + socket.topChatListId).prepend(createChatBox(message, true));
+//    $('#divChatList' + socket.topChatEmail).append(createChatBox(message, true));
+    $('#divChatList' + socket.chatMap[email]).prepend(createChatBox(message, true));
 
     $('#txtMessage').val('');
     $('#txtMessage').focus();
