@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>:: Cielo ::</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/js/socket.io.min.js"></script>
+    <script type="text/javascript" src="/js/final.js"></script>
+  </head>
+  <body>
+    <br />
+    <div class="container">
+      <div class="row">
+        <div class="col-md-9">
+          <div class="panel panel-default" style="height:43em;border:15px solid #000;background:#888;">
+            <div class="panel-body">
+              <div id="divContainer0" class="panel panel-default" style="background:#e8e8e8; width:100%; height:30em;"></div>
+              <div id="divContainer1" class="panel panel-default" style="background:#e8e8e8; width:24.5%; height:7em; display:inline-block;"></div>
+              <div id="divContainer2" class="panel panel-default" style="background:#e8e8e8; width:24.5%; height:7em; display:inline-block;"></div>
+              <div id="divContainer3" class="panel panel-default" style="background:#e8e8e8; width:24.5%; height:7em; display:inline-block;"></div>
+              <div id="divContainer4" class="panel panel-default" style="background:#e8e8e8; width:24.5%; height:7em; display:inline-block;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="panel panel-default" style="height:43em;border:15px solid #000; background:#fff;">
+            <div class="panel-heading" >
+              <center>
+                <button id="btnChannel" class="btn btn-primary">Channel</button>
+                <button id="btnChat" class="btn btn-default">Chat</button>
+              </center>
+            </div>
+            <div class="panel-body" style="margin-right:3px;height:90.3%;overflow-y:scroll;padding:0px;background:#d8d8d8;">
+              <div id="divChannelList" style="width:100%; height:85%;"></div>
+              <div id="divChatContainer" class="panel panel-primary" style="display:none;border:0;border-radius:0;height:96.3%;">
+                <div class="panel-body" style="height:88%;padding:0;">
+                  <div id="divChatList0" style="overflow-x:none;overflow-y:scroll;display:block; width:100%; height:85%;"></div>
+                  <div id="divChatList1" style="overflow:none;display:none; width:100%; height:85%;"></div>
+                  <div id="divChatList2" style="overflow:none;display:none; width:100%; height:85%;"></div>
+                  <div id="divChatList3" style="overflow:none;display:none; width:100%; height:85%;"></div>
+                  <div id="divChatList4" style="overflow:none;display:none; width:100%; height:85%;"></div>
+                </div>
+                <div class="panel-footer" style="height:12%;">
+                  <div class="input-group">
+                    <input id="txtMessage" class="form-control" type="text" maxlength="100" />
+                      <span class="input-group-addon"><a id="btnTalk" style="color:#000;">Talk</a></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+  </body>
+</html>

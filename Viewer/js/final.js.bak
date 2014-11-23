@@ -12,7 +12,7 @@ $(function() {
   var FAILURE = 1;
   var btnChannel = $('#btnChannel');
   var btnChat = $('#btnChat');
-  var pnlChannel = $('#divChannelList');
+  var lstChannel = $('#divChannelList');
   var lstChat0 = $('#divChatList0');
   var lstChat1 = $('#divChatList1');
   var lstChat2 = $('#divChatList2');
@@ -20,92 +20,114 @@ $(function() {
   var lstChat4 = $('#divChatList4');
   var socket = io.connect(nodeServer);
   var waitForReceiveChannelList = false;
+  var topMessageListId = 'divChatList0';
 
-  socket.topChatListId = 0;
-  socket.containerMap = {};
   socket.connectionMap = {};
+  socket.channelMap = {};
   socket.chatMap = {};
   socket.videoMap = {};
 
-  function sortVideo() {
-    for(var i = 1; i < 5; i++) {
-      var container = $('#divContainer' + i);
-
-      if(container.children().length == 0) {
-        continue;
+  function getEmailFromVideoIndex(index) {
+    for(var email in socket.videoMap) {
+      if(socket.videoMap[email] == index) {
+        return email;
       }
-
-      var email = $('#divContainer' + i).attr('email');
-
-      $('#divContainer' + i + ' a').first().appendTo('#divContainer0');
-      $('#divContainer' + i).removeAttr('email');
-
-      $('#divContainer0 video').first()[0].play();
-      $('#divContainer0').attr('email', email);
-
-      socket.containerMap[email] = i;
-
-      $('#divContainer0 a').unbind('click');
-      $('#divContainer0 a').click(function() {
-        onClickVideo(0);
-      });
-
-      socket.topChatListId = socket.chatMap[email];
-      break;
     }
   }
 
-  function onClickVideo(index) {
-    console.log(index);
-    if(index == 0) { // 큰 화면인 경우
+  function showChatPanel(index) {
+    $('#divChannelList').hide();
+
+    for(var i = 0; i < 5; i++) {
+      if(i == index) {
+        $('#divChatList' + i).show();
+      } else {
+        $('#divChatList' + i).hide();
+      }
+    }
+  }
+
+  function onClickVideo(container) {
+    if(container.indexOf('0') > -1) { // 메인일 경우
       if(!confirm('시청중인 방송을 끄시겠습니까?')) {
         return;
       }
 
-      var email = $('#divContainer0').attr('email');
+      conn = socket.connectionMap[$(container).attr('email')];
+      conn.video.pause();
+      conn.container.empty();
 
-      socket.connectionMap[email].close();
-    } else { // 작은 화면인 경우
-      var anchor = $('#divContainer' + index + ' a').first();
-
-      $('#divContainer' + index).empty();
-      $('#divContainer0 a').first().appendTo('#divContainer' + index);
-      anchor.appendTo('#divContainer0');
-
-      var email = $('#divContainer' + index).attr('email');
-      $('#divContainer' + index).attr('email', $('#divContainer0').attr('email'));
-      $('#divContainer0').attr('email', email);
-
-      $('#divContainer' + index + ' video').first()[0].play();
-      $('#divContainer0 video').first()[0].play();
-
-      $('#divContainer' + index + ' a').unbind('click');
-      $('#divContainer' + index + ' a').click(function() {
-        onClickVideo(index);
+      socket.emit('leaveChannel', {
+        'email': conn.email
       });
 
-      $('#divContainer0 a').unbind('click');
-      $('#divContainer0 a').click(function() {
-        onClickVideo(0);
-      });
+      console.log('방송이 종료되었습니다.');
 
-      socket.topChatListId = socket.chatMap[email];
+      for(var i = 1; i <= 4; i++) {
+        var mainLink  = $('#divVideo' + i + ' a')[0];
+        var mainEmail = $('#divVideo' + i).attr('email');
+
+        if($('#divVideo0').children().length > 0) {
+          $('#divVideo0').empty();
+          $('#divVideo0').append(mainLink);
+          $('#divVideo0 video')[0].play();
+
+          socket.connectionMap[$('#divVideo0').attr('email')].video = $('#divVideo0 video')[0];
+
+          $('#divVideo0 a').unbind('click');
+          $('#divVideo0 a').click(function() {
+            onClickVideo('#divVideo0');
+          });
+
+          break;
+        }
+      }
+
+      socket.connectionMap[$(container).attr('email')] = null;
+      $(container).attr('email', null);
+    } else { // swap
+      var mainLink  = $('#divVideo0 a')[0];
+      var mainEmail = $('#divVideo0').attr('email');
+      var subLink  = $(container + ' a')[0];
+      var subEmail = $(container).attr('email');
+
+      if($('#divVideo0').children().length > 0) {
+        socket.connectionMap[$(container).attr('email')].video = $(container + ' video')[0];
+
+        $(container).empty();
+        $(container).append(mainLink);
+        $(container + ' video')[0].play();
+
+        $(container + ' a').unbind('click');
+        $(container + ' a').click(function() {
+          onClickVideo(container);
+        });
+      }
+
+      socket.connectionMap[$('#divVideo0').attr('email')].video = $('#divVideo0 video')[0];
+
+      $('#divVideo0').empty();
+      $('#divVideo0').append(subLink);
+      $('#divVideo0 video')[0].play();
+
+      $('#divVideo0 a').unbind('click');
+      $('#divVideo0 a').click(function() {
+        onClickVideo('#divVideo0');
+      });
     }
   }
 
   function connect(email) {
     if(Object.keys(socket.connectionMap).length == 5) {
       alert('비디오를 재생할 공간이 없습니다.');
-      return;
     }
 
     var conn = new RTCPeerConnection(iceServers);
     conn.email = email;
 
-    conn.onaddstream = function(e) {
-      socket.videoMap[conn.email].src = URL.createObjectURL(e.stream);
-      alert('비디오를 수신합니다.');
-    };
+    socket.connectionMap[email] = conn;
+    socket.videoMap[email] = $('<video autoplay="true" style="width:100%; height:100%"></video>')[0];
+//    conn.video = $('<video autoplay="true" style="width:100%; height:100%"></video>')[0];
 
     conn.onicecandidate = function(e) {
       if(conn.iceGatheringState != 'complete') {
@@ -120,78 +142,54 @@ $(function() {
       }
 
       socket.emit('enterChannel', {
-        'email': conn.email
+        'email': email
       });
 
       conn.isEntered = true;
     };
 
+    conn.onaddstream = function(e) {
+      socket.connectionMap[email].video.src = URL.createObjectURL(e.stream);
+    };
+
     conn.onsignalingstatechange = function(e) {
       if(conn.signalingState == 'closed') {
-        console.log(email);
-        console.log(socket.containerMap[conn.email]);
-        console.log($('#divConatiner' + socket.containerMap[conn.email]));
-
-        $('#divContainer' + socket.containerMap[conn.email]).empty();
-        $('#divContainer' + socket.containerMap[conn.email]).removeAttr('email');
-        delete socket.containerMap[conn.email];
-
-        console.log(socket.chatMap[conn.email]);
-        console.log($('#divChatList' + socket.chatMap[conn.email]));
-
-        $('#divChatList' + socket.chatMap[conn.email]).empty();
-        delete socket.chatMap[conn.email];
-
-        sortVideo();
+        conn.video.pause();
+        conn.container.empty();
 
         socket.emit('leaveChannel', {
           'email': conn.email
         });
 
-        delete socket.connectionMap[conn.email];
-        delete socket.videoMap[conn.email];;
+        socket.connectionMap[$(container).attr('email')] = null;
+        $(container).attr('email', null);
 
-        console.log(conn.email + ' 방송이 종료되었습니다.');
+        console.log('방송이 종료되었습니다.');
       }
     };
 
-    socket.connectionMap[conn.email] = conn;
-    socket.videoMap[conn.email] = $('<video autoplay="true" style="width:100%; height:100%"></video>')[0];
-
     for(var i = 0; i < 5; i++) {
-      var container = $('#divContainer' + i); 
+      var container = $('#divVideo' + i); 
 
       if(container.children().length == 0) {
-        var anchor = $('<a></a>');
-        anchor.append(socket.videoMap[conn.email]);
-        anchor.click(function() {
-          onClickVideo(i);
+        var link = $('<a></a>');
+        link.append(socket.videoMap[email]);
+        link.click(function() {
+          onClickVideo(container.selector);
         });
 
-        console.log('awefawef');
-        console.log(conn.email);
-        console.log(i);
+        container.append(link);
+        container.attr('email', email);
+        conn.container = container;
+        console.log('비디오 추가');
 
-        container.append(anchor);
-        container.attr('email', conn.email);
-        socket.containerMap[conn.email] = i;
-
-        console.log('connect');
-        console.log(socket.containerMap[conn.email]);
-        console.log(container);
-        break;
-      }
-    }
-
-    for(var i = 0; i < 5; i++) {
-      if($('#divChatList' + i).children().length == 0) {
-        socket.chatMap[email] = i;
         break;
       }
     }
 
     conn.createOffer(function(desc) {
       conn.setLocalDescription(desc);
+      socket.offer = desc.sdp;
     }, function(err) {
       alert(err);
     }, {
@@ -202,16 +200,15 @@ $(function() {
     });
   }
 
-  function getFormattedDate(d) {
-    var date = new Date();
-    var y = date.getFullYear();
-    var M = date.getMonth();
-    var d = date.getDate();
-    var h = date.getHours();
-    var m = date.getMinutes();
-    var s = date.getSeconds();
+  function formatDate(d) {
+    var year = d.getFullYear();
+    var month = d.getMonth();
+    var date = d.getDate();
+    var hour = d.getHours();
+    var minute = d.getMinutes();
+    var second = d.getSeconds();
 
-    return y + '-' + M + '-' + d + ' ' + h + ':' + m + ':' + s;
+    return year + '-' + month + '-' + date + ' ' + hour + ':' + minute + ':' + second;
   }
 
   function createChannelBox(email, encodedImage, title, name) { 
@@ -220,12 +217,11 @@ $(function() {
       + 'margin:8px 8px 0 8px;'
       + '"></a>');
     channelBox.click(function() {
-/*
-      if(socket.containerMap[email] != null) {
+      if(socket.connectionMap[email] != null) {
         alert('이미 시청중인 채널입니다.');
         return;
       }
-*/
+
       connect(email);
     });
 
@@ -274,7 +270,7 @@ $(function() {
       + 'text-decoration:underline;'
       + 'padding:0 0 2px 0;'
       + '"></div>');
-    dateBox.html(getFormattedDate());
+    dateBox.html(formatDate(new Date()));
 
     var messageBox = $('<div style="display:block;margin-left:55px;'
 //      + 'border:1px solid #000;'
@@ -290,56 +286,55 @@ $(function() {
   socket.on('enterChannel', function(data) {
     var ret = data.ret;
     var email = data.email;
-    var socketId = data.socketId;
 
     if(ret == FAILURE) {
       console.log(email + ' 채널에 접속할 수 없습니다.');
       return;
     }
 
-    if(socket.socket.sessionid != socketId) {
-      console.log('다른 사람이 채널에 접속했습니다.');
-      return;
-    }
-
-/*
-    // FIXME 이 부분 어떻게 해결하지.. ??
-    if(socket.containerMap[email] != null) {
+    if(socket.channelMap[email] != null) {
       alert('이미 시청중인 채넣입니다.');
       return;
     }
 
     for(var i = 0; i < 5; i++) {
-      if($('#divContainer' + i).children().length == 0) {
-        socket.containerMap[email] = i;
+      if($('#divVideo' + i).children().length == 0) {
+        socket.channelMap[email] = i;
+        console.log('채널: ' + email + ', 번호: ' + i);
         break;
       }
     }
-*/
-    socket.emit('offer', {
-      'email': email,
-      'sdp': socket.connectionMap[email].localDescription.sdp
-    });
 
-    alert(email + ' 채널에 접속합니다.');
+    if(socket.chatMap[email] == null) {
+      for(var i = 0; i < 5; i++) {
+        if($('#divChatList' + i).children().length == 0) {
+          socket.chatMap[email] = i;
+          socket.emit('offer', {
+            'email': email,
+            'sdp': socket.connectionMap[email].localDescription.sdp
+          });
+          break;
+        }
+      }
+    }
+
+    console.log(email + ' 채널에 접속하였습니다.');
   });
 
   socket.on('getChannelList', function(data) {
-    var pnlChannel = $('#divChannelList');
-    var channelList = data.channelList;
     var count = 0;
 
-    for(var channel in channelList) {
-      var broadcaster = JSON.parse(channelList[channel]);
+    for(var channel in data.channelList) {
+      var broadcaster = JSON.parse(data.channelList[channel]);
       var name;
 
       try {
-        name = decodeURIComponent(escape(atob(broadcaster.name)));
+        name = atob(broadcaster.name);
       } catch(err) {
         name = broadcaster.name;
       }
 
-      $('#divChannelList').append(createChannelBox(channel, broadcaster.img, broadcaster.title, name));
+      lstChannel.append(createChannelBox(channel, broadcaster.img, broadcaster.title, name));
       count++;
     }
 
@@ -354,23 +349,8 @@ $(function() {
     var email = data.email;
 
     socket.connectionMap[email].close();
-/*
-    console.log(socket.containerMap[email]);
-    $('#divConatiner' + socket.containerMap[email]).empty();
-    delete socket.containerMap[email];
-
-    $('#divChat' + socket.chatMap[email]).empty();
-    delete socket.chatMap[email];
-
-    socket.connectionMap[email].close();
     delete socket.connectionMap[email];
-
-    delete socket.videoMap[email];
-    sortVideo();
-
     console.log(email + ' 채널이 종료되었습니다.');
-*/
-
   });
 
   socket.on('offer', function(data) {
@@ -404,18 +384,11 @@ $(function() {
     $('#divChatList' + socket.chatMap[email]).append(createChatBox(message));
 
     console.log('소켓: ' + socketId + ', 채널: ' + email + ', 메시지: ' + message);
-
-//    var elem = $('#divChatList' + socket.chatMap[email]);
-//    elem.scrollHeight - elem.scrollTop() == elem.outerHeight();
   });
 
   btnChannel.click(function(e) {
-    if(waitForReceiveChannelList) {
-      return;
-    }
-
     var pnlChannel = $('#divChannelList');
-    var pnlChat = $('#divChatContainer');
+    var pnlChat = $('#' + topMessageListId);
 
     pnlChat.hide();
     pnlChannel.show();
@@ -425,15 +398,18 @@ $(function() {
     btnChat.addClass('btn-default');
     btnChat.removeClass('btn-primary');
 
-    waitForReceiveChannelList = true;
+    if(waitForReceiveChannelList) {
+      return;
+    }
 
-    pnlChannel.empty();
+    waitForReceiveChannelList = true;
+    lstChannel.empty();
     socket.emit('getChannelList');
   });
 
   btnChat.click(function(e) {
     var pnlChannel = $('#divChannelList');
-    var pnlChat = $('#divChatContainer');
+    var pnlChat = $('#' + topMessageListId);
 
     btnChat.addClass('btn-primary');
     btnChat.removeClass('btn-default');
@@ -442,39 +418,5 @@ $(function() {
 
     pnlChannel.hide();
     pnlChat.show();
-  });
-
-  $('#txtMessage').keydown(function(e) {
-    if(e.keyCode == 13) {
-      $('#btnTalk').click();
-    }
-  });
-
-  $('#btnTalk').click(function() {
-    var email = $('#divContainer0').attr('email');
-
-    if(!email) {
-      alert('방송 시청중이 아닙니다.');
-      return;
-    }
-
-    var message = $('#txtMessage').val();
-
-    if(message.length == 0) {
-      return;
-    }
-
-    console.log(socket.topChatListId);
-
-//    $('#divChatList' + socket.topChatListId).append(createChatBox(message, true));
-    $('#divChatList' + socket.topChatListId).prepend(createChatBox(message, true));
-
-    $('#txtMessage').val('');
-    $('#txtMessage').focus();
-
-    socket.emit('chat', {
-      'email': email,
-      'message': message
-    });
   });
 });
