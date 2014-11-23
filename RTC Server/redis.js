@@ -81,10 +81,15 @@ function existChannel(email, callback) {
       return;
     }
 
-    if(!data || !JSON.parse(data.title)) { // 채널이 없을 경우
-      callback(null, false);
-    } else { // 채널이 있을 경우
-      callback(null, true);
+    try {
+//      if(!data || !JSON.parse(data.title)) { // 채널이 없을 경우
+      if(!data) { // 채널이 없을 경우
+        callback(null, false);
+      } else { // 채널이 있을 경우
+        callback(null, true);
+      }
+    } catch(err) {
+      callback(err);
     }
   });
 }

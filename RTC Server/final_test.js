@@ -5,6 +5,7 @@ var redis = require('./redis.js');
 var SUCCESS = 0;
 var FAILURE = 1;
 var broadcasterMap = {}; // 키: 이메일, 값: 소켓
+var socketMap = {};
 
 function emitSuccess(socket, eventType, data) {
   if(!data) {
@@ -58,6 +59,7 @@ function signOut(socket) {
 }
 
 io.sockets.on('connection', function(socket) {
+  socketMap[socket.id] = socket;
   socket.channelMap = {};
 
   socket.on('signUp', function(data) {
@@ -197,6 +199,7 @@ io.sockets.on('connection', function(socket) {
       });
 
       emitSuccess(socket, 'enterChannel', {
+        'socketId': socket.id,
         'email': email
       });
     });  
@@ -261,7 +264,9 @@ io.sockets.on('connection', function(socket) {
     var email = data.email;
     var sdp = data.sdp;
 
-    socket.broadcast.to(socketId).emit('answer', {
+    // FIXME
+//    socket.broadcast.to(socketId).emit('answer', {
+    socketMap[socketId].emit('answer', {
       'email': email,
       'sdp': sdp
     });
